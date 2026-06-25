@@ -1,0 +1,46 @@
+---
+/**
+ * Editorial pull-quote for MDX blog posts.
+ * Usage:
+ *   import Highlight from '../../components/Highlight.astro';
+ *   <Highlight>This is the big idea of the post.</Highlight>
+ */
+---
+
+<div class="highlight-block">
+  <slot />
+</div>
+
+<style>
+  .highlight-block {
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--color-ink);
+    line-height: 1.65;
+    text-align: center;
+    padding: 1.75rem 2.5rem;
+    margin: 2.5rem 0;
+    border-top: 1px solid var(--color-gold);
+    border-bottom: 1px solid var(--color-gold);
+    position: relative;
+  }
+
+  .highlight-block::before {
+    content: '✦';
+    position: absolute;
+    top: -0.55em;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-cream);
+    padding: 0 0.5rem;
+    font-size: 0.6rem;
+    color: var(--color-gold);
+    font-style: normal;
+  }
+
+  .highlight-block :global(p) {
+    margin: 0;
+  }
+</style>

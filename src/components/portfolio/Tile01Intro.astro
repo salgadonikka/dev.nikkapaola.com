@@ -1,0 +1,72 @@
+---
+// Tile 01 — Introduction + Skills & Stack
+import { identity, bio, skillGroups } from "../../data/portfolioData.js";
+---
+
+<section class="tile" id="tile-01" data-section="01" aria-label="Introduction">
+  <div class="tile-inner t01">
+    <div class="t01-grid">
+      <!-- Left column: role, prose, highlights -->
+      <div class="t01-left">
+        <h1 class="t01-role" set:html={identity.role} />
+        <div class="t01-prose">
+          {bio.paragraphs.map((p) => <p set:html={p} />)}
+        </div>
+        <div class="t01-data-col">
+          <div class="t01-data-row">
+            <span class="t01-data-num">What I bring</span>
+            <span class="t01-data-label"></span>
+          </div>
+          {bio.whatIBring.map((item) => (
+            <div class="t01-data-row">
+              <span class="t01-data-label">{item}</span>
+            </div>
+          ))}
+        </div>
+        <div class="learning-callout">
+          <div class="learning-lbl">Industries</div>
+          <div class="learning-tags">
+            {bio.industries.map((tag) => <span>{tag}</span>)}
+          </div>
+        </div>
+        <div class="learning-callout">
+          <div class="learning-lbl">Languages</div>
+          <div class="learning-tags">
+            {bio.languages.map((tag) => <span>{tag}</span>)}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column: skills & stack -->
+      <div class="t01-skills">
+        <div class="t01-skills-header">
+          <div class="tile-label">Skills &amp; Stack</div>
+          <div class="skill-legend">
+            <span class="legend-title">Legend</span>
+            <span class="bp">Core</span>
+            <span class="bs">Proficient</span>
+            <span class="bl">Soft Skills</span>
+          </div>
+        </div>
+        <div class="t01-skill-groups">
+          {skillGroups.map((group) => (
+            <div class="skill-group">
+              <div class="sg-label" set:html={group.label} />
+              <div class="badge-row">
+                {group.skills.map((skill) => (
+                  <span class={skill.variant} set:html={skill.name} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div class="learning-callout">
+          <div class="learning-lbl">Actively Exploring</div>
+          <div class="learning-tags">
+            {bio.activelyExploring.map((tag) => <span>{tag}</span>)}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

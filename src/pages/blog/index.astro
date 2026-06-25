@@ -1,0 +1,71 @@
+---
+import { getCollection } from "astro:content";
+import FormattedDate from "../../components/FormattedDate.astro";
+import TopicTree from "../../components/blog/TopicTree.astro";
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import { SITE_TITLE } from "../../consts";
+
+const allPosts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+
+const recentPosts = allPosts.slice(0, 6);
+---
+
+<SiteLayout title={`Blog — ${SITE_TITLE}`} contentClass="sl-content--split">
+
+  <div class="blog-split">
+
+    <!-- ── Topic tree panel ── -->
+    <div class="blog-tree-panel">
+      <TopicTree posts={allPosts} />
+    </div>
+
+    <!-- ── Reading pane: welcome state ── -->
+    <div class="blog-reading-pane">
+      <div class="reading-welcome">
+        <div class="reading-eyebrow">dev.nikkapaola.com</div>
+        <h1 class="reading-heading">The <em>blog</em></h1>
+        <p class="reading-subtext">
+          Technical writing, dev notes, and things I'm building.
+          Browse a topic on the left or start with a recent post below.
+        </p>
+
+        {
+          recentPosts.length > 0 && (
+            <>
+              <div class="reading-recent-label">Recent posts</div>
+              <ul class="reading-recent-list">
+                {recentPosts.map((post) => (
+                  <li class="reading-recent-item">
+                    <a href={`/blog/${post.id}/`} class="reading-recent-link">
+                      <span class="reading-recent-title">{post.data.title}</span>
+                      <span class="reading-recent-meta">
+                        {post.data.category && (
+                          <span class="reading-recent-cat">{post.data.category}</span>
+                        )}
+                        <span class="reading-recent-date">
+                          <FormattedDate date={post.data.pubDate} />
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )
+        }
+
+        {
+          allPosts.length === 0 && (
+            <p style="font-size:0.9rem; color:var(--color-muted); font-style:italic;">
+              No posts yet — check back soon.
+            </p>
+          )
+        }
+      </div>
+    </div>
+
+  </div>
+
+</SiteLayout>

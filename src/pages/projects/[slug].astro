@@ -1,0 +1,180 @@
+---
+import { getCollection, render } from "astro:content";
+import FormattedDate from "../../components/FormattedDate.astro";
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import { SITE_TITLE } from "../../consts";
+import PhotoGallery from "../../components/PhotoGallery";
+import "../../styles/projects.css";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("projects", ({ data }) => !data.draft);
+  return projects.map((p) => ({
+    params: { slug: p.id },
+    props: { project: p },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+const {
+  name,
+  tagline,
+  category,
+  status,
+  stack,
+  tags,
+  url,
+  githubUrl,
+  screenshots,
+  screenshotCaptions,
+} = project.data;
+
+const statusSlug = status.toLowerCase().replace(" ", "-");
+
+const relatedPosts = tags?.length
+  ? (await getCollection("blog"))
+      .filter(
+        (p) => !p.data.draft && tags.some((t) => p.data.tags?.includes(t)),
+      )
+      .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+      .slice(0, 4)
+  : [];
+---
+
+<SiteLayout title={`${name} — ${SITE_TITLE}`} description={tagline}>
+
+    <main class="proj-detail-main">
+      <!-- ── HERO ── -->
+      <section class="proj-hero">
+        <div class="proj-breadcrumb">
+          <a href="/projects">Projects</a>
+          <span aria-hidden="true">→</span>
+          <span>{name}</span>
+        </div>
+        <div class="proj-hero-meta">
+          <span class="proj-category">{category}</span>
+          <span class={`proj-status proj-status--${statusSlug}`}>{status}</span>
+        </div>
+        <h1 class="proj-title">{name}</h1>
+        <p class="proj-tagline">{tagline}</p>
+        {
+          (url || githubUrl) && (
+            <div class="proj-hero-links">
+              {url && (
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener"
+                  class="proj-hero-link proj-hero-link--primary"
+                >
+                  Visit site →
+                </a>
+              )}
+              {githubUrl && (
+                <a
+                  href={githubUrl}
+                  target="_blank"
+                  rel="noopener"
+                  class="proj-hero-link"
+                >
+                  View on GitHub →
+                </a>
+              )}
+            </div>
+          )
+        }
+      </section>
+
+      <div class="proj-body">
+        <!-- ── OVERVIEW / BODY CONTENT ── -->
+        <section class="proj-section" id="overview">
+          <div class="proj-section-label">Overview</div>
+          <div class="proj-section-content proj-prose">
+            <Content />
+          </div>
+        </section>
+
+        <!-- ── SCREENSHOTS ── -->
+        <section class="proj-section" id="screenshots">
+          <div class="proj-section-label">Screenshots</div>
+          <div class="proj-section-content">
+            {
+              screenshots && screenshots.length > 0 ? (
+                <PhotoGallery client:load variant="screenshots" maxVisible={2} images={screenshots} name={name} captions={screenshotCaptions} />
+              ) : (
+                <div class="proj-screenshots">
+                  <div class="screenshot-placeholder">
+                    <div class="screenshot-placeholder-inner">
+                      <span class="screenshot-placeholder-icon">✦</span>
+                      <span>Screenshots coming soon</span>
+                    </div>
+                  </div>
+                  <div class="screenshot-placeholder">
+                    <div class="screenshot-placeholder-inner" />
+                  </div>
+                  <div class="screenshot-placeholder">
+                    <div class="screenshot-placeholder-inner" />
+                  </div>
+                </div>
+              )
+            }
+          </div>
+        </section>
+
+        <!-- ── TECH STACK ── -->
+        {
+          stack && stack.length > 0 && (
+            <section class="proj-section" id="stack">
+              <div class="proj-section-label">Tech stack</div>
+              <div class="proj-section-content">
+                <div class="proj-stack-list">
+                  {stack.map((s) => (
+                    <span class="proj-stack-badge">{s}</span>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )
+        }
+
+        <!-- ── WRITING ABOUT THIS ── -->
+        <section class="proj-section" id="writing">
+          <div class="proj-section-label">Writing about this</div>
+          <div class="proj-section-content">
+            {
+              relatedPosts.length > 0 ? (
+                <div class="proj-posts">
+                  {relatedPosts.map((post) => (
+                    <a href={`/blog/${post.id}/`} class="proj-post-link">
+                      <div class="proj-post-meta">
+                        {post.data.category && (
+                          <span class="proj-post-cat">
+                            {post.data.category}
+                          </span>
+                        )}
+                        <span class="proj-post-date">
+                          <FormattedDate date={post.data.pubDate} />
+                        </span>
+                      </div>
+                      <div class="proj-post-title">{post.data.title}</div>
+                      <p class="proj-post-desc">{post.data.description}</p>
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p class="proj-placeholder-text">
+                  No posts yet. Check back soon, or browse the{" "}
+                  <a href="/blog">blog</a> for related writing.
+                </p>
+              )
+            }
+          </div>
+        </section>
+      </div>
+
+      <div class="proj-footer">
+        <a href="/projects" class="proj-back">← Back to all projects</a>
+      </div>
+    </main>
+
+</SiteLayout>

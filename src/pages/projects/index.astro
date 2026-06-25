@@ -1,0 +1,67 @@
+---
+import { getCollection } from "astro:content";
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import { SITE_TITLE } from "../../consts";
+import "../../styles/projects.css";
+
+const all = await getCollection("projects", ({ data }) => !data.draft);
+
+const sorted = all.sort((a, b) => {
+  if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
+  return a.data.order - b.data.order;
+});
+---
+
+<SiteLayout
+  title={`Projects — ${SITE_TITLE}`}
+  description="Apps, business ventures, and side projects by Nikka — things I'm building."
+>
+    <main class="projects-main">
+      <div class="proj-page-header">
+        <div class="proj-eyebrow">Work in progress</div>
+        <h1 class="proj-page-title">Projects &amp; <em>Ventures</em></h1>
+        <p class="proj-page-subtitle">
+          Apps I'm building, businesses I'm starting, and experiments I'm
+          running. Not everything is finished. That's kind of the point.
+        </p>
+      </div>
+
+      <div class="project-grid">
+        {
+          sorted.map((project) => {
+            const statusSlug = project.data.status
+              .toLowerCase()
+              .replace(" ", "-");
+            return (
+              <a
+                href={`/projects/${project.id}`}
+                class={`project-card${project.data.featured ? " project-card--featured" : ""}`}
+              >
+                <div class="project-card-top">
+                  <div class="project-meta">
+                    <span class="proj-category">{project.data.category}</span>
+                    <span class={`proj-status proj-status--${statusSlug}`}>
+                      {project.data.status}
+                    </span>
+                  </div>
+                  <h2 class="project-name">{project.data.name}</h2>
+                  <p class="project-tagline">{project.data.tagline}</p>
+                </div>
+                <div class="project-card-bottom">
+                  {project.data.stack && project.data.stack.length > 0 && (
+                    <div class="project-stack-pills">
+                      {project.data.stack.map((s) => (
+                        <span>{s}</span>
+                      ))}
+                    </div>
+                  )}
+                  <span class="project-arrow">View project →</span>
+                </div>
+              </a>
+            );
+          })
+        }
+      </div>
+    </main>
+
+</SiteLayout>

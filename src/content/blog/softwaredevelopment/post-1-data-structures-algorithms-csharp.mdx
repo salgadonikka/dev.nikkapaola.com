@@ -1,0 +1,460 @@
+---
+title: "Data Structures & Algorithms: What You Actually Need to Know"
+description: "Not a grind guide. A working engineer's refresher on data structures, when to use them, when not to, and where AI gets it quietly wrong."
+pubDate: 2026-04-26
+tags: ["csharp", "data-structures", "algorithms", "dotnet"]
+draft: true
+---
+
+import Callout from '../../../components/Callout.astro';
+import Highlight from '../../../components/Highlight.astro';
+import DataTable from '../../../components/DataTable.astro';
+
+This is not about memorising algorithms. It's about building the intuition to look at a piece of code and know whether the right structure is being used for the job.
+
+That intuition is what separates engineers who write code that works from engineers who write code that *holds up*. And honestly, it's also the thing that lets you catch what AI gets quietly wrong.
+
+<Callout type="note" title="Scope of this post">
+  This post covers the core data structures every engineer should know, then maps them to their
+  C# and .NET equivalents. The concepts are language-agnostic. The class names and specific
+  behaviours are .NET specific.
+</Callout>
+
+---
+
+## Arrays, Lists, and Linked Lists
+
+These three are the foundation of everything else. The difference between them comes down to one question: how does your data sit in memory, and how do you need to access it?
+
+---
+
+### Array
+
+**The concept:** A fixed-size, ordered collection of elements stored in contiguous memory. You know the size upfront. You access any element instantly by its index because the memory address is just a calculation away.
+
+**In C#:** `System.Array`, or more commonly `int[]`, `string[]`, etc. Once declared, the size is locked. To "resize," you create a new array and copy elements over.
+
+```csharp
+// Storing a fixed set of HTTP status codes to check against
+int[] successCodes = new int[] { 200, 201, 202, 204 };
+bool isSuccess = successCodes[0] == 200; // O(1) — direct memory address
+```
+
+**Best for:** Fixed-size data where you need maximum read speed. Buffer processing, lookup tables with known indices, wrapping raw binary or stream data.
+
+**Avoid when:** You don't know the size upfront, or items are added and removed at runtime. That's what `List<T>` is for.
+
+---
+
+### List (Dynamic Array)
+
+**The concept:** Same idea as an array under the hood (contiguous memory, index access) but it manages its own size. When it runs out of space, it allocates a bigger array and copies everything over. This is called dynamic resizing.
+
+**In C#:** `List<T>` is the go-to for almost everything. It wraps an internal array that doubles in size when capacity is exceeded.
+
+```csharp
+// Building up validation errors discovered at runtime
+var errors = new List<string>();
+errors.Add("Email is required");
+errors.Add("Password must be at least 8 characters");
+// Size grows automatically — no need to know the count upfront
+```
+
+**Best for:** General-purpose ordered collections where items are added and removed over time. This is the default choice in most situations.
+
+**Avoid when:** You're doing frequent inserts or deletes in the middle of a large list. Every insert in the middle shifts every element after it. That's O(n), and it adds up fast.
+
+<Callout type="tip" title="The resize cost is real at scale">
+  Every time List resizes, it allocates a new array and copies everything over. If you
+  have a rough idea of how many items you'll store, pass that as the initial capacity:
+  `new List<string>(expectedCount)`. It avoids repeated allocations as the list grows.
+</Callout>
+
+---
+
+### Linked List
+
+**The concept:** Instead of contiguous memory, a linked list is a chain of nodes. Each node holds a value and a pointer to the next node — and in a doubly linked list, also the previous. There's no index. To find the fifth element, you start at the head and walk forward five times.
+
+The tradeoff is the inverse of an array: slow to access by position, but very fast to insert and delete at any known location — because you're just updating pointers, not shifting memory.
+
+**In C#:** `LinkedList<T>` is a doubly linked list. You work with `LinkedListNode<T>` references directly.
+
+```csharp
+// Undo history — add and remove from ends frequently, rarely need index access
+var undoHistory = new LinkedList<string>();
+undoHistory.AddLast("typed 'Hello'");
+undoHistory.AddLast("deleted word");
+undoHistory.RemoveLast(); // O(1) — just update a pointer, no shifting
+```
+
+**Best for:** Frequent insertions or deletions at the front, back, or a known position in the middle. Undo/redo systems, LRU caches, ordered queues where items can be promoted or removed mid-list.
+
+**Avoid when:** You need access by index, or when memory overhead matters. Each node is a separate heap allocation, which adds up and breaks CPU cache efficiency.
+
+---
+
+### Comparing the Three
+
+<DataTable
+  caption="Array vs List vs Linked List"
+  headers={["", "Array", "List (Dynamic Array)", "Linked List"]}
+  rows={[
+    ["Size", "Fixed", "Dynamic (auto-resizes)", "Dynamic"],
+    ["Memory layout", "Contiguous", "Contiguous", "Scattered nodes"],
+    ["Access by index", "O(1)", "O(1)", "O(n)"],
+    ["Insert at end", "Not supported", "O(1) amortized", "O(1)"],
+    ["Insert at middle", "Not supported", "O(n) — shifts elements", "O(1) at known node"],
+    ["Delete at front", "Not supported", "O(n) — shifts elements", "O(1)"],
+    ["Cache friendliness", "Excellent", "Excellent", "Poor"],
+    ["C# type", "int[], string[], etc.", "List<T>", "LinkedList<T>"],
+  ]}
+  highlightFirst={true}
+/>
+
+---
+
+## Hash Maps and Sets
+
+These are probably the most underrated structures in everyday development. Engineers who reach for a `List` out of habit and use `.Contains()` or `.Find()` on it are doing O(n) work where O(1) would do. It's one of the most common performance issues hiding in otherwise clean-looking code.
+
+---
+
+### Hash Map (Dictionary)
+
+**The concept:** A collection that maps unique keys to values. Under the hood, it computes a hash of the key to find the storage location directly. That's what gives you near-constant lookup time regardless of how many items are in the collection.
+
+**In C#:** `Dictionary<TKey, TValue>`.
+
+```csharp
+// Caching user permissions by user ID to avoid repeated DB calls
+var permissionCache = new Dictionary<Guid, List<string>>();
+permissionCache[userId] = new List<string> { "read", "write" };
+
+// O(1) lookup — doesn't matter if there are 10 users or 100,000
+if (permissionCache.TryGetValue(userId, out var perms))
+{
+    // use perms
+}
+```
+
+**Best for:** Any key-value lookup — caches, counters, grouping data by a key, mapping IDs to objects.
+
+**Avoid when:** You need sorted keys (`SortedDictionary<K,V>`), need to preserve insertion order (`OrderedDictionary<K,V>` in .NET 9+), or you're in a multi-threaded context (`ConcurrentDictionary<K,V>`).
+
+<Callout type="insight" title="Use TryGetValue, not ContainsKey then the indexer">
+  Calling `ContainsKey` followed by the indexer is two lookups. `TryGetValue` does the
+  same thing in one pass. Small habit, real difference at scale, and a common code review
+  flag worth building into muscle memory.
+</Callout>
+
+---
+
+### Hash Set
+
+**The concept:** A hash map where you only care about the keys, not the values. A collection of unique elements with O(1) membership checks and built-in set operations like union, intersection, and difference.
+
+**In C#:** `HashSet<T>`.
+
+```csharp
+// Deduplicating a stream of incoming organisation IDs
+var processedOrgIds = new HashSet<Guid>();
+
+foreach (var record in incomingRecords)
+{
+    // Add() returns false if already present — clean deduplication in one line
+    if (processedOrgIds.Add(record.OrgId))
+    {
+        ProcessRecord(record);
+    }
+}
+```
+
+**Best for:** Deduplication, membership checks, and set operations. If your question is "have I seen this before?" — `HashSet` is almost always the right answer.
+
+**Avoid when:** You need to store key-value pairs, maintain order, or allow duplicates.
+
+---
+
+### Comparing Dictionary and HashSet
+
+<DataTable
+  caption="Dictionary vs HashSet"
+  headers={["", "Dictionary<K,V>", "HashSet<T>"]}
+  rows={[
+    ["Stores", "Key-value pairs", "Values only"],
+    ["Lookup", "O(1) by key", "O(1) Contains check"],
+    ["Duplicates", "Keys must be unique", "No duplicates allowed"],
+    ["Order", "Not guaranteed", "Not guaranteed"],
+    ["Set operations", "No", "UnionWith, IntersectWith, ExceptWith"],
+    ["Thread-safe", "No", "No"],
+  ]}
+  highlightFirst={true}
+/>
+
+---
+
+## Trees and Graphs
+
+These two don't have a single built-in class in .NET, and that's intentional. The requirements vary too much depending on what you're modelling.
+
+---
+
+### Trees
+
+**The concept:** A hierarchical structure with a root node and children. Each node can have zero or more child nodes, and there are no cycles. Common shapes include binary trees, n-ary trees, and tries (for prefix-based string searching).
+
+Trees come up in real work more than people expect: file system paths, organisation hierarchies, comment threads, category taxonomies, expression parsing.
+
+**In C#:** No built-in `Tree<T>`. You build your own with a `Node<T>` class. That said, `SortedDictionary<K,V>` and `SortedSet<T>` are backed by Red-Black trees internally — you get tree-level performance without building the structure yourself.
+
+```csharp
+// Custom tree node — the building block for any hierarchy
+public class TreeNode<T>
+{
+    public T Value { get; set; }
+    public List<TreeNode<T>> Children { get; set; } = new();
+}
+
+// Example: org chart where each person can manage multiple people
+var orgChart = new TreeNode<string> { Value = "CEO" };
+orgChart.Children.Add(new TreeNode<string> { Value = "CTO" });
+orgChart.Children.Add(new TreeNode<string> { Value = "CFO" });
+```
+
+**Best for:** Hierarchical data (org charts, file paths, menus, XML/JSON parsing), sorted structures with fast search, prefix lookups, and recursive problem decomposition.
+
+**Avoid when:** Relationships have cycles or multiple parents. That's a graph.
+
+---
+
+### Graphs
+
+**The concept:** A set of nodes connected by edges. Unlike trees, there's no hierarchy or root, edges can be bidirectional, and nodes can have any number of connections. Edges can also carry weights like distances, costs, or priorities.
+
+Graphs come up in dependency resolution, network routing, social connections, workflow engines, and anything where relationships go in multiple directions.
+
+**In C#:** No built-in `Graph<T>`. Two common approaches:
+
+```csharp
+// Adjacency list — most common, memory-efficient for sparse graphs
+// Maps each node to the list of nodes it connects to
+var graph = new Dictionary<string, List<string>>();
+graph["A"] = new List<string> { "B", "C" };
+graph["B"] = new List<string> { "A", "D" };
+// Good for: social networks, route finding, dependency resolution
+
+// Adjacency matrix — better for dense graphs where you need O(1) edge checks
+bool[,] matrix = new bool[4, 4];
+matrix[0, 1] = true; // Edge exists from node 0 to node 1
+```
+
+**Best for:** Modelling relationships, pathfinding (BFS/DFS), dependency resolution, network topology.
+
+**Avoid when:** Your data is strictly hierarchical with no cycles. A tree is simpler and more appropriate.
+
+---
+
+## Stacks and Queues
+
+These get overlooked because they seem almost too simple. But they show up constantly in real code — often disguised as something else.
+
+---
+
+### Stack
+
+**The concept:** Last-In, First-Out. You push items on top and pop them off the top. Think of a stack of plates — you always take from the top.
+
+**In C#:** `Stack<T>`.
+
+```csharp
+// Parsing nested brackets or tags — track what's been opened
+var openTags = new Stack<string>();
+openTags.Push("section");
+openTags.Push("paragraph");
+
+var closing = openTags.Pop(); // "paragraph" — the most recently opened
+// Also natural for: undo systems, DFS traversal, call stack simulation
+```
+
+**Best for:** Undo/redo, expression and syntax parsing, backtracking algorithms, depth-first graph traversal.
+
+---
+
+### Queue
+
+**The concept:** First-In, First-Out. Enqueue at the back, dequeue from the front. Think of a checkout line — whoever arrived first gets served first.
+
+**In C#:** `Queue<T>`. Also worth knowing: `PriorityQueue<TElement, TPriority>` (added in .NET 6) dequeues by priority rather than arrival order.
+
+```csharp
+// Processing incoming webhook events in the order they arrived
+var eventQueue = new Queue<WebhookEvent>();
+eventQueue.Enqueue(new WebhookEvent("user.created"));
+eventQueue.Enqueue(new WebhookEvent("payment.completed"));
+
+var next = eventQueue.Dequeue(); // "user.created" — first in, first out
+```
+
+**Best for:** Task queues, message processing, breadth-first graph traversal, request buffering, any scenario where arrival order matters.
+
+---
+
+### Comparing Stack and Queue
+
+<DataTable
+  caption="Stack vs Queue"
+  headers={["", "Stack<T>", "Queue<T>"]}
+  rows={[
+    ["Order", "LIFO — Last In, First Out", "FIFO — First In, First Out"],
+    ["Add", "Push() — adds to top", "Enqueue() — adds to back"],
+    ["Remove", "Pop() — removes from top", "Dequeue() — removes from front"],
+    ["Peek (read without removing)", "Peek() — reads top", "Peek() — reads front"],
+    ["Index access", "Not supported", "Not supported"],
+    ["Thread-safe variant", "ConcurrentStack<T>", "ConcurrentQueue<T>"],
+  ]}
+  highlightFirst={true}
+/>
+
+---
+
+## Big O — What Actually Matters in Production
+
+Big O notation describes how the performance of an operation scales as the input grows. You don't need to derive it mathematically. You need the intuition.
+
+The practical framing: imagine your collection has 1 item. Now imagine it has 100,000. How does the time to complete an operation change?
+
+<DataTable
+  caption="Big O — intuition guide"
+  headers={["Notation", "Name", "What it means in plain terms", "Example"]}
+  rows={[
+    ["O(1)", "Constant", "Collection size doesn't matter — always the same speed.", "Dictionary lookup, array index access"],
+    ["O(log n)", "Logarithmic", "Gets slower, but slowly. Doubling input barely increases time.", "Binary search, SortedDictionary operations"],
+    ["O(n)", "Linear", "Time grows directly with size. 10x more items = 10x slower.", "List.Contains(), iterating a collection"],
+    ["O(n log n)", "Linearithmic", "Common in good sorting algorithms.", "List.Sort(), LINQ OrderBy"],
+    ["O(n²)", "Quadratic", "Gets slow fast. Nested loops over the same collection.", "Naive duplicate detection with nested List iterations"],
+  ]}
+  highlightFirst={true}
+/>
+
+<Highlight>The jump that matters most in production is O(1) vs O(n). At 10 items, the difference is invisible. At 100,000 items, it's the difference between a fast response and a timeout.</Highlight>
+
+The most common real-world example: using `List.Contains()` inside a loop. Each call is O(n). Put that inside a loop of n items and you've got O(n²). Swap `List` for `HashSet` and every `.Contains()` becomes O(1). Same logic, dramatically different performance at scale.
+
+---
+
+## How These Map to .NET Collections
+
+<DataTable
+  caption="Concept to C# collection — the full picture"
+  headers={["Concept", "C# Type", "Notes"]}
+  rows={[
+    ["Dynamic array", "List<T>", "Default for most ordered collections"],
+    ["Hash map", "Dictionary<K,V>", "Key-value, O(1) lookup"],
+    ["Hash set", "HashSet<T>", "Unique values, O(1) membership check"],
+    ["Stack", "Stack<T>", "LIFO"],
+    ["Queue", "Queue<T>", "FIFO"],
+    ["Priority queue", "PriorityQueue<T,P>", "Dequeues by priority. Added .NET 6"],
+    ["Doubly linked list", "LinkedList<T>", "Fast insert/delete at known position"],
+    ["Sorted map", "SortedDictionary<K,V>", "Keys always sorted. Red-Black tree internally"],
+    ["Sorted set", "SortedSet<T>", "Unique values, always sorted. Red-Black tree internally"],
+    ["Thread-safe map", "ConcurrentDictionary<K,V>", "Multi-threaded reads and writes without manual locks"],
+    ["Thread-safe queue", "ConcurrentQueue<T>", "Producer-consumer patterns"],
+    ["Thread-safe stack", "ConcurrentStack<T>", "Multi-threaded LIFO"],
+    ["Immutable list", "ImmutableList<T>", "Returns a new list on modification"],
+    ["Immutable map", "ImmutableDictionary<K,V>", "Immutable key-value store"],
+    ["Read-only fast map", "FrozenDictionary<K,V>", "Optimised for reads. Created once, queried often. .NET 8+"],
+    ["Read-only fast set", "FrozenSet<T>", "Faster Contains() than HashSet at scale. .NET 8+"],
+    ["Tree", "(custom)", "Build with a Node<T> class and List<Node<T>> children"],
+    ["Graph", "(custom)", "Adjacency list: Dictionary<T, List<T>>"],
+  ]}
+  highlightFirst={true}
+/>
+
+<Callout type="tip" title="Frozen vs Immutable — the quick distinction">
+  Both are read-only after creation. Immutable collections share internal structure between
+  instances to make producing modified copies fast. Frozen collections spend more time at
+  creation to make reads faster. If the data is built once at startup and queried constantly
+  throughout the life of the app, Frozen wins. If you need to produce modified copies
+  frequently, Immutable is the better fit.
+</Callout>
+
+---
+
+## LINQ and Deferred Execution
+
+One thing worth really understanding when you work with these collections in C# is how LINQ behaves. Writing a LINQ query doesn't execute it. You get back an `IEnumerable<T>` that describes what to do — and the actual work happens only when something iterates over it.
+
+```csharp
+// This line does nothing yet — no filtering has happened
+var activeTasks = tasks.Where(t => !t.Archived);
+
+// Execution happens here, when we actually iterate
+foreach (var task in activeTasks) { ... }
+
+// Or here — ToList() forces immediate execution and stores the result
+var snapshot = tasks.Where(t => !t.Archived).ToList();
+```
+
+Here's a real example from Tamelo. The query handler for fetching tasks chains multiple conditions before anything touches the database:
+
+```csharp
+public async Task<List<TaskDto>> Handle(GetTasksQuery request, CancellationToken cancellationToken)
+{
+    var query = _context.TaskItems
+        .Where(t => t.UserId == _user.Id); // Not executed yet — builds expression tree
+
+    if (!request.IncludeArchived)
+        query = query.Where(t => !t.Archived); // Still not executed — adds to the expression
+
+    return await query
+        .OrderBy(t => t.SortOrder)
+        .Select(t => new TaskDto(
+            t.Id,
+            t.Title,
+            t.Notes,
+            t.ProjectId,
+            t.Markers.Select(m => new DayMarkerDto(m.Date, m.State.ToString().ToLower())).ToList(),
+            t.Created,
+            t.Archived,
+            t.SortOrder))
+        .ToListAsync(cancellationToken); // THIS is when the SQL query actually runs
+}
+```
+
+The chain of `.Where()` and `.Select()` calls builds an expression tree. Entity Framework translates that into a single SQL query and runs it only when `ToListAsync()` is called. This is why you can conditionally add filters mid-method without worrying about triggering partial queries — nothing hits the database until the very end.
+
+<Callout type="warning" title="Deferred execution bites you when the source changes">
+  If the underlying collection is modified between defining the query and iterating it, you'll
+  get unexpected results. Call `.ToList()` or `.ToArray()` to materialise a snapshot when
+  this matters — especially inside loops, after async operations, or when sharing results
+  across multiple consumers.
+</Callout>
+
+---
+
+## Reading AI-Generated Code: What Structure Did It Choose and Why?
+
+This is the practical skill that ties the whole post together.
+
+When AI generates code involving collections, it almost always reaches for `List<T>`. It's the most common type in training data, it compiles, it runs, and it looks perfectly clean. The problem is that "works" and "right for the job" aren't the same thing, and that gap only shows up at scale.
+
+Here are the patterns worth looking for when reviewing AI-generated code:
+
+`.Contains()` on a `List` inside a loop is O(n²) in disguise. If the collection is large and this runs frequently, swap the `List` for a `HashSet`.
+
+Dictionary lookup using `ContainsKey` then the indexer is two lookups where one would do. Use `TryGetValue`.
+
+A `List` used purely for membership checks, if you're never accessing elements by index and only ever asking "is this item present?" Should be a `HashSet`.
+
+Missing thread-safety on shared collections. AI will hand you a `Dictionary` in code that clearly touches shared state across async operations. That's a data race. It should be `ConcurrentDictionary`.
+
+An `IEnumerable<T>` iterated more than once. AI sometimes returns a deferred query from a method that the caller then loops over multiple times. Each iteration re-executes the query. Materialise it with `.ToList()` if it will be consumed more than once.
+
+None of these are hard to catch once you know what to look for. AI generated the structure. You evaluate whether it's the right one.
+
+<Callout type="aside" title="The takeaway">
+  The structure you choose early tends to stay. It gets built around, tested against, and
+  assumed by every layer above it. Choosing well early is cheaper than refactoring later,
+  and AI won't make that call for you, but you can.
+</Callout>

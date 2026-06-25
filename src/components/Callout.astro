@@ -1,0 +1,79 @@
+---
+/**
+ * Callout block for MDX blog posts.
+ * Usage:
+ *   import Callout from '../../components/Callout.astro';
+ *   <Callout type="note">A quiet aside.</Callout>
+ *   <Callout type="tip" title="Worth trying">Some practical thought.</Callout>
+ *
+ * Types: note | tip | warning | aside
+ */
+interface Props {
+  type?: 'note' | 'tip' | 'warning' | 'aside' | 'insight';
+  title?: string;
+}
+
+const { type = 'note', title } = Astro.props;
+
+const config = {
+  note:    { mark: '◆', label: 'Note',     accent: '#b8965a' },
+  tip:     { mark: '✦', label: 'Takeaway', accent: '#7a9e87' },
+  warning: { mark: '—', label: 'Note',     accent: '#c4694f' },
+  aside:   { mark: '·', label: 'Aside',    accent: '#8a8479' },
+  insight: { mark: '◎', label: 'Insight',  accent: '#7a9e87' },
+};
+
+const { mark, label, accent } = config[type];
+const displayTitle = title ?? label;
+---
+
+<aside class="callout" style={`--accent: ${accent};`}>
+  <div class="callout-header">
+    <span class="callout-mark" aria-hidden="true">{mark}</span>
+    <span class="callout-title">{displayTitle}</span>
+  </div>
+  <div class="callout-body">
+    <slot />
+  </div>
+</aside>
+
+<style>
+  .callout {
+    border-left: 2px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 7%, transparent);
+    border-radius: 0 6px 6px 0;
+    padding: 1rem 1.4rem;
+    margin: 2rem 0;
+  }
+
+  .callout-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .callout-mark {
+    font-size: 0.7rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .callout-title {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .callout-body {
+    font-size: 0.92rem;
+    color: var(--color-ink-soft);
+    line-height: 1.75;
+  }
+
+  .callout-body :global(p) {
+    margin: 0;
+  }
+</style>

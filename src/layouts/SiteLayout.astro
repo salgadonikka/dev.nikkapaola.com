@@ -1,0 +1,166 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import { siteConfig } from "../site.config";
+import "../styles/site-layout.css";
+import "../styles/landing.css";
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Add "sl-content--split" when the content area manages its own inner scroll (blog split pane) */
+  contentClass?: string;
+}
+
+const { title, description = siteConfig.description, contentClass = "" } = Astro.props;
+const path = Astro.url.pathname;
+
+const mainNav = [
+  {
+    href: "/portfolio",
+    label: "Portfolio",
+    tooltip: "Portfolio",
+    icon: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>`,
+  },
+  {
+    href: "/blog",
+    label: "Blog",
+    tooltip: "Blog",
+    icon: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>`,
+  },
+  {
+    href: "/projects",
+    label: "Projects",
+    tooltip: "Projects",
+    icon: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
+  },
+];
+
+const socialNav = [
+  {
+    href: siteConfig.social.github ?? "#",
+    label: "GitHub",
+    tooltip: "GitHub",
+    external: true,
+    icon: `<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>`,
+  },
+  {
+    href: siteConfig.social.linkedin ?? "#",
+    label: "LinkedIn",
+    tooltip: "LinkedIn",
+    external: true,
+    icon: `<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0H5C2.239 0 0 2.239 0 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5V5c0-2.761-2.238-5-5-5zM8 19H5V8h3v11zM6.5 6.732c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zM20 19h-3v-5.604c0-3.368-4-3.113-4 0V19h-3V8h3v1.765c1.396-2.586 7-2.777 7 2.476V19z"/></svg>`,
+  },
+];
+
+function isActive(href: string) {
+  return path === href || (href !== "/" && path.startsWith(href));
+}
+---
+
+<!doctype html>
+<html lang="en" class="sl-html">
+  <head>
+    <BaseHead title={title} description={description} />
+    <script is:inline>
+      document.documentElement.dataset.theme = "light";
+    </script>
+  </head>
+  <body>
+
+    <!-- ══ TOP HEADER (replaces side rail) ══ -->
+    <header class="lp-header">
+      <a href="/" class="lp-logo-wrap" aria-label="dev.nikkapaola.com home">
+        <span class="lp-monogram">NPS</span>
+        <span class="lp-logo-name">dev.<em>nikkapaola</em></span>
+      </a>
+      <nav class="lp-header-nav" aria-label="Main navigation">
+        {mainNav.map((item) => (
+          <a
+            href={item.href}
+            class={isActive(item.href) ? "is-active" : undefined}
+            aria-current={isActive(item.href) ? "page" : undefined}
+          >
+            {item.label}
+          </a>
+        ))}
+      </nav>
+    </header>
+
+    <div class="sl-shell">
+
+      <!-- ══ RAIL (commented out — replaced by top header above) ══
+      <aside class="sl-rail" id="sl-rail" aria-label="Site navigation">
+
+        <button class="sl-toggle" id="sl-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+          <span class="sl-toggle-bars" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+          <span class="sl-toggle-lbl">Collapse</span>
+        </button>
+
+        <a href="/" class="sl-logo-wrap" aria-label="dev.nikkapaola.com home">
+          <span class="sl-monogram" aria-hidden="true">NP</span>
+          <span class="sl-logo-full">dev.<em>nikkapaola</em></span>
+        </a>
+
+        <nav class="sl-nav" aria-label="Main navigation">
+          <span class="sl-nav-section-label">Navigate</span>
+          {mainNav.map((item) => (
+            <a
+              href={item.href}
+              class={`sl-nav-item${isActive(item.href) ? " is-active" : ""}`}
+              data-tooltip={item.tooltip}
+              aria-current={isActive(item.href) ? "page" : undefined}
+            >
+              <span class="sl-nav-icon" aria-hidden="true" set:html={item.icon} />
+              <span class="sl-nav-name">{item.label}</span>
+            </a>
+          ))}
+        </nav>
+
+        <div class="sl-bottom">
+          {socialNav.map((item) => (
+            <a
+              href={item.href}
+              class="sl-nav-item"
+              data-tooltip={item.tooltip}
+              target={item.external ? "_blank" : undefined}
+              rel={item.external ? "noopener" : undefined}
+              aria-label={item.label}
+            >
+              <span class="sl-nav-icon" aria-hidden="true" set:html={item.icon} />
+              <span class="sl-nav-name">{item.label}</span>
+            </a>
+          ))}
+        </div>
+
+      </aside>
+      ══ END RAIL ══ -->
+
+      <!-- ══ CONTENT ══ -->
+      <div class={`sl-content${contentClass ? ` ${contentClass}` : ""}`} id="sl-content">
+        <slot />
+      </div>
+
+    </div>
+
+    <script>
+      /* Rail toggle — commented out (rail replaced by top header)
+      const rail = document.getElementById("sl-rail")!;
+      const toggle = document.getElementById("sl-toggle")!;
+      const STORAGE_KEY = "sl-rail-open";
+
+      if (sessionStorage.getItem(STORAGE_KEY) === "1") {
+        rail.classList.add("is-open");
+        toggle.setAttribute("aria-expanded", "true");
+      }
+
+      toggle.addEventListener("click", () => {
+        const isOpen = rail.classList.toggle("is-open");
+        toggle.setAttribute("aria-expanded", String(isOpen));
+        sessionStorage.setItem(STORAGE_KEY, isOpen ? "1" : "0");
+      });
+      */
+    </script>
+  </body>
+</html>

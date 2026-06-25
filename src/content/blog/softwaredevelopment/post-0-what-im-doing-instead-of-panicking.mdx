@@ -1,0 +1,95 @@
+---
+title: "What I'm Doing Instead of Panicking About AI"
+description: "I started questioning if I'd become obsolete. A few months of watching, reading, and thinking later — here's where I landed, and what I'm doing about it."
+pubDate: 2026-04-25
+tags: ["ai", "software-engineering", "career", "field-guide"]
+series: "The Engineer's Field Guide"
+category: "Software Development"
+readingTime: "8 min read"
+draft: true
+---
+
+import Callout from '../../../components/Callout.astro';
+import Highlight from '../../../components/Highlight.astro';
+import DataTable from '../../../components/DataTable.astro';
+
+There was a moment, maybe a year ago, where I genuinely started asking myself: *am I going to be obsolete?*
+
+I opened up one of the AI tools everyone was talking about, typed in a prompt, and watched it produce in thirty seconds what would have taken me an hour. And I just sat there. A little amazed, a little unsettled, a lot quiet.
+
+Then I started seeing the posts. People with zero development experience shipping apps, making money, talking about how they didn't need to code anymore. And honestly? That hit different as someone who has spent years getting good at this. It was fascinating to watch and terrifying to sit with at the same time.
+
+But I kept reading. And a few months later, the same feeds started showing something else. The hidden costs of letting AI do everything, including the thinking. Apps that couldn't be maintained because nobody understood what was inside them. Bugs that couldn't be fixed because the person who "built" it didn't know how it worked. Features that couldn't be extended because the foundation was held together by generated code that nobody reviewed and nobody truly owned.
+
+That's when something clicked for me.
+
+<Highlight>AI isn't here to replace me. It's here the same way the calculator showed up for mathematicians.</Highlight>
+
+Now, I'm not personally claiming to know mathematicians from the pre-calculator era. This is just an analogy. But the point stands: nobody looked at a calculator and said "well, mathematicians are done." The calculator made mathematicians *faster*. It removed the tedious parts so they could focus on the parts that actually required a human brain. The judgment, intuition, and real understanding of what the numbers meant.
+
+The thing about tools, though, is that you have to know how to use them. A calculator in the hands of someone who doesn't understand arithmetic isn't useful, it's just confident. And AI in the hands of someone who doesn't understand software engineering is the same thing: fast, fluent, and potentially very wrong in ways that are hard to see unless you know what to look for.
+
+And here's the thing: AI actually *can* reason about your system, your scale, your constraints. But only if you know what to ask. That's the part people skip over. Knowing what questions matter, what tradeoffs to probe, what follow-up to push on when the first answer feels a little off. That's not something you can prompt your way into without experience. Someone without an engineering background doesn't know to ask "what happens to this query at 100k rows?" or "is this safe in a multi-tenant context?" or "what are the security implications here?" They don't know what they don't know, so they accept the output and move on.
+ 
+<Callout type="insight" title="The part that stuck with me">
+  AI can reason about your system, your scale, your constraints, but only if you know what to ask.
+  And knowing what to ask is itself the product of deep experience. That's the part you have to earn.
+  No prompt can shortcut it.
+</Callout>
+
+## So instead of panicking, I decided to do something about it
+
+I'm going back to the foundations. Not because I forgot them, but because solidifying what I know is exactly what turns AI from a crutch into a multiplier.
+
+The engineers who are going to thrive in this era are not the ones who resist AI, and they're definitely not the ones who hand it the keys and walk away. They're the ones who understand their craft deeply enough to direct it, evaluate its output, catch its mistakes, and make better decisions because of it.
+
+<DataTable
+  caption="The new division of labor"
+  headers={["What AI is good at", "What you still need to own"]}
+  rows={[
+    ["Generating boilerplate and scaffolding fast", "Knowing if the structure makes sense for your system"],
+    ["Implementing a pattern when you name it", "Knowing which pattern to reach for and when not to"],
+    ["Writing syntactically correct queries", "Reading an execution plan and knowing why it's slow"],
+    ["Producing test scaffolding quickly", "Knowing what actually needs to be tested and why"],
+    ["Drafting API endpoints and routes", "Designing an API contract that holds up over years"],
+    ["Suggesting likely causes for a bug", "Debugging in context with real system knowledge"],
+  ]}
+  highlightFirst={true}
+/>
+
+This isn't an anti-AI post. I use AI every day and it genuinely makes me faster. But there's a real difference between using it as a tool you understand and using it as a black box you trust blindly. One makes you better. The other is a liability waiting to surface.
+
+## What this series is
+
+This blog series is my way of doing that out loud, going deep on the fundamentals, one post at a time.
+
+Each post covers one topic that I think every software engineer should genuinely *own*. Not skim. Not be vaguely familiar with. Own. And in every single one, I'll be honest about where AI helps, where it quietly fails, and what you need to understand yourself so that when you use it, you're the one driving.
+
+<Callout type="note" title="Who this is for">
+  I'm writing this for myself as much as anyone else as a reference I can come back to, as proof
+  that I did the work. But if you're a developer sitting with that same mix of curiosity and
+  anxiety I felt a year ago, I hope there's something useful here for you too.
+</Callout>
+
+Here's what the series covers:
+
+<DataTable
+  caption="The Engineer's Field Guide — series overview"
+  headers={["Part", "Topic area", "Posts"]}
+  rows={[
+    ["1", "Foundations You Must Own", "Data structures, memory, networking, databases"],
+    ["2", "Backend Mastery", "Clean architecture, design patterns, REST APIs, auth, testing, async, SQL"],
+    ["3", "Architecture, Systems & Cloud", "System design, microservices vs. monolith, Azure, CI/CD"],
+    ["4", "Frontend Depth", "React mental model, TypeScript"],
+    ["5", "The Craft", "Code review, debugging, domain knowledge, AI assessment"],
+  ]}
+  highlightFirst={true}
+/>
+
+<Callout type="tip" title="How to use this series">
+  Every post is written to stand on its own, so you can jump to whatever topic you need right now.
+  But if you read them in order, they build on each other. Start wherever feels most relevant to
+  where you are.
+</Callout>
+
+Let's get into it.

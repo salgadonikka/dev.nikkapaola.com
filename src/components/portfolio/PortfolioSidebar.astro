@@ -1,0 +1,98 @@
+---
+import { Image } from "astro:assets";
+import portfolioPhoto from "../../assets/portfolio-photo.jpg";
+import { identity, status, contactLinks } from "../../data/portfolioData.js";
+
+interface Props {
+  sections: { num: string; label: string; id: string }[];
+  tabletSections?: { num: string; label: string }[];
+}
+const { sections, tabletSections = [] } = Astro.props;
+---
+
+<aside class="pf2-sidebar" id="pf2-sidebar" aria-label="Portfolio navigation">
+  <div class="si-rule"></div>
+  <div class="si-inner">
+    <!-- ── Identity ── -->
+    <div class="si-top">
+      <div class="si-avatar">
+        <Image
+          src={portfolioPhoto}
+          alt={identity.photoAlt}
+          width={100}
+          height={100}
+          class="si-avatar-img"
+        />
+        <span class="si-avatar-fallback" aria-hidden="true"
+          >{identity.monogram}</span
+        >
+      </div>
+      <div class="si-mono-rule"></div>
+      <div class="si-name">{identity.name}</div>
+      <div class="si-role" set:html={identity.role} />
+      <div class="si-stack">{identity.stack}</div>
+    </div>
+
+    <!-- ── Status + Contacts ── -->
+    <div class="si-bottom">
+      <div class="si-avail">
+        <span class="pulse-dot"></span>
+        <span class="si-avail-text">{status.availability}</span>
+      </div>
+      <div class="si-location" set:html={status.locationDetail} />
+      <div class="si-divider"></div>
+
+      <div class="si-contacts">
+        {
+          contactLinks.map((link) => (
+            <a
+              href={link.href}
+              class={`si-contact-link${link.type === "resume" ? " si-contact-link--resume" : ""}`}
+              title={link.title}
+              target={link.external ? "_blank" : undefined}
+              rel={link.external ? "noopener" : undefined}
+            >
+              <Fragment set:html={link.iconSvg} />
+              <span>{link.label}</span>
+            </a>
+          ))
+        }
+      </div>
+
+      <!-- ── Navigation ── -->
+      <div class="si-divider"></div>
+      <nav class="si-nav si-nav--desktop" aria-label="Portfolio sections">
+        {
+          sections.map((s, i) => (
+            <a
+              href={`#${s.id}`}
+              class={`si-link${i === 0 ? " si-link--active" : ""}`}
+              data-section={s.num}
+              aria-current={i === 0 ? "true" : "false"}
+            >
+              <span class="si-num">{s.num}</span>
+              <span class="si-label">{s.label}</span>
+            </a>
+          ))
+        }
+      </nav>
+      {
+        tabletSections.length > 0 && (
+          <nav class="si-nav si-nav--tablet" aria-label="Portfolio sections">
+            {tabletSections.map((s, i) => (
+              <a
+                href="#"
+                class={`si-link${i === 0 ? " si-link--active" : ""}${s.num === "—" ? " si-link--sub" : ""}`}
+                aria-current={i === 0 ? "true" : "false"}
+              >
+                <span class="si-num">{s.num}</span>
+                <span class="si-label">{s.label}</span>
+              </a>
+            ))}
+          </nav>
+        )
+      }
+      <a href="/" class="si-back">← Back to site</a>
+    </div>
+  </div>
+</aside>

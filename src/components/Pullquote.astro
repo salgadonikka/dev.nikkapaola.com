@@ -1,0 +1,52 @@
+---
+/**
+ * Magazine-style pull quote for MDX blog posts.
+ * Larger and more prominent than Highlight — meant for extracted quotes from the text itself.
+ * Usage:
+ *   import Pullquote from '../../components/Pullquote.astro';
+ *   <Pullquote>The list was supposed to help. Instead, it became its own task.</Pullquote>
+ */
+---
+
+<blockquote class="pullquote">
+  <slot />
+</blockquote>
+
+<style>
+  .pullquote {
+    font-family: var(--font-serif);
+    font-size: clamp(1.25rem, 3vw, 1.6rem);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--color-ink);
+    line-height: 1.55;
+    text-align: center;
+    margin: 3rem 0;
+    padding: 2rem 3rem;
+    position: relative;
+    border: none;
+  }
+
+  .pullquote::before,
+  .pullquote::after {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: var(--color-terracotta);
+    margin: 0 auto;
+  }
+
+  .pullquote::before { margin-bottom: 1.5rem; }
+  .pullquote::after  { margin-top: 1.5rem; }
+
+  .pullquote :global(p) {
+    margin: 0;
+  }
+
+  @media (max-width: 600px) {
+    .pullquote {
+      padding: 1.5rem 1rem;
+    }
+  }
+</style>

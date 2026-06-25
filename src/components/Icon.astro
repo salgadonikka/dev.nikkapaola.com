@@ -1,0 +1,57 @@
+---
+/**
+ * Renders a Phosphor icon by name. Add new names here as needed.
+ * No client directive = static SVG output, zero JS shipped.
+ */
+import {
+  Flower,
+  HeartStraight,
+  Compass,
+  Moon,
+  Terminal,
+  ChartLineUp,
+  Palette,
+  BookOpen,
+  MapPin,
+  Leaf,
+  Code,
+  AirplaneTilt,
+  Laptop,
+  Wrench,
+  Translate,
+  MusicNotes,
+  Briefcase,
+  NotePencil,
+  Pause,
+} from "@phosphor-icons/react";
+
+interface Props {
+  name: string;
+  size?: number;
+  weight?: "thin" | "light" | "regular" | "bold" | "fill" | "duotone";
+  class?: string;
+}
+
+const { name, size = 20, weight = "regular", class: className } = Astro.props;
+const shared = { size, weight, "aria-hidden": true, className };
+---
+
+{name === "Flower" && <Flower {...shared} />}
+{name === "HeartStraight" && <HeartStraight {...shared} />}
+{name === "Compass" && <Compass {...shared} />}
+{name === "Moon" && <Moon {...shared} />}
+{name === "Terminal" && <Terminal {...shared} />}
+{name === "ChartLineUp" && <ChartLineUp {...shared} />}
+{name === "Palette" && <Palette {...shared} />}
+{name === "BookOpen" && <BookOpen {...shared} />}
+{name === "MapPin" && <MapPin {...shared} />}
+{name === "Leaf" && <Leaf {...shared} />}
+{name === "Code" && <Code {...shared} />}
+{name === "AirplaneTilt" && <AirplaneTilt {...shared} />}
+{name === "Laptop" && <Laptop {...shared} />}
+{name === "Wrench" && <Wrench {...shared} />}
+{name === "Translate" && <Translate {...shared} />}
+{name === "MusicNotes" && <MusicNotes {...shared} />}
+{name === "Briefcase" && <Briefcase {...shared} />}
+{name === "NotePencil" && <NotePencil {...shared} />}
+{name === "Pause" && <Pause {...shared} />}

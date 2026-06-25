@@ -1,0 +1,61 @@
+---
+// Tile 03 - Contact (dark tile, full-page animation on desktop)
+import { Image } from "astro:assets";
+import portfolioPhoto from "../../assets/portfolio-photo.jpg";
+import { identity, status, contactLinks, contactCopy } from "../../data/portfolioData.js";
+import { siteConfig } from "../../site.config";
+---
+
+<section
+  class="tile tile--dark"
+  id="tile-03"
+  data-section="03"
+  aria-label="Contact"
+>
+  <div class="tile-inner t03c">
+    <!-- Photo + identity (JS animates these in on desktop) -->
+    <div class="t03c-hero" id="t03c-hero">
+      <div class="t03c-photo-wrap" id="t03c-photo-wrap">
+        <Image
+          src={portfolioPhoto}
+          alt={identity.name}
+          width={300}
+          height={300}
+          class="t03c-photo"
+        />
+      </div>
+      <div class="t03c-identity" id="t03c-identity">
+        <div class="t03c-name">{identity.name}</div>
+        <div class="t03c-role" set:html={identity.role} />
+        <div class="t03c-stack">{identity.stack}</div>
+        <div class="t03c-avail">
+          <span class="pulse-dot"></span>
+          {status.availabilityLong} · {status.location}
+        </div>
+      </div>
+    </div>
+
+    <!-- Heading + body copy -->
+    <div class="t03c-copy" id="t03c-copy">
+      <h2 class="t03c-heading">{contactCopy.heading}</h2>
+      <p class="t03c-body">{contactCopy.body}</p>
+    </div>
+
+    <!-- Contact links -->
+    <div class="t03c-links" id="t03c-links">
+      {contactLinks.map((link) => (
+        <a
+          href={link.href}
+          class={`t03c-link${link.type === "resume" ? " t03c-link--resume" : ""}`}
+          target={link.external ? "_blank" : undefined}
+          rel={link.external ? "noopener" : undefined}
+        >
+          <Fragment set:html={link.iconSvg} />
+          <span>{link.label}</span>
+        </a>
+      ))}
+    </div>
+
+    <a href="/" class="t03c-back">← Back to {siteConfig.title}</a>
+  </div>
+</section>

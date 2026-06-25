@@ -1,0 +1,142 @@
+---
+/**
+ * Series banner for MDX blog posts.
+ * Shows which series a post belongs to, its position, and optional prev/next navigation.
+ * Usage:
+ *   import PostMeta from '../../components/PostMeta.astro';
+ *   <PostMeta
+ *     series="Building Tamelo"
+ *     seriesOrder={1}
+ *     nextPost="Why It's Called Tamelo"
+ *     nextPostHref="/blog/tamelo/post-02-why-its-called-tamelo"
+ *   />
+ *
+ * All props except series are optional.
+ */
+interface Props {
+  series: string;
+  seriesOrder?: number;
+  previousPost?: string;
+  previousPostHref?: string;
+  nextPost?: string;
+  nextPostHref?: string;
+}
+
+const { series, seriesOrder, previousPost, previousPostHref, nextPost, nextPostHref } = Astro.props;
+---
+
+<div class="post-meta-banner">
+  <div class="post-meta-series">
+    <span class="post-meta-series-mark" aria-hidden="true">✦</span>
+    <span class="post-meta-series-label">Series</span>
+    <span class="post-meta-series-name">{series}</span>
+    {seriesOrder && (
+      <span class="post-meta-series-part">Part {seriesOrder}</span>
+    )}
+  </div>
+
+  {(previousPost || nextPost) && (
+    <nav class="post-meta-nav" aria-label="Series navigation">
+      {previousPost && (
+        <span class="post-meta-nav-item post-meta-nav-item--prev">
+          <span class="post-meta-nav-dir">← Previous</span>
+          {previousPostHref
+            ? <a href={previousPostHref} class="post-meta-nav-title">{previousPost}</a>
+            : <span class="post-meta-nav-title">{previousPost}</span>
+          }
+        </span>
+      )}
+      {nextPost && (
+        <span class="post-meta-nav-item post-meta-nav-item--next">
+          <span class="post-meta-nav-dir">Next →</span>
+          {nextPostHref
+            ? <a href={nextPostHref} class="post-meta-nav-title">{nextPost}</a>
+            : <span class="post-meta-nav-title">{nextPost}</span>
+          }
+        </span>
+      )}
+    </nav>
+  )}
+</div>
+
+<style>
+  .post-meta-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem 1.2rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-warm-white);
+    margin-bottom: 2.5rem;
+    font-size: 0.78rem;
+  }
+
+  .post-meta-series {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .post-meta-series-mark {
+    font-size: 0.55rem;
+    color: var(--color-terracotta);
+    line-height: 1;
+  }
+
+  .post-meta-series-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-terracotta);
+    font-weight: 500;
+  }
+
+  .post-meta-series-name {
+    color: var(--color-ink);
+    font-weight: 500;
+  }
+
+  .post-meta-series-part {
+    color: var(--color-muted);
+    font-weight: 400;
+  }
+
+  .post-meta-nav {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .post-meta-nav-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .post-meta-nav-item--next {
+    text-align: right;
+  }
+
+  .post-meta-nav-dir {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .post-meta-nav-title {
+    color: var(--color-ink);
+    font-style: italic;
+    font-family: var(--font-serif);
+    text-decoration: none;
+  }
+
+  a.post-meta-nav-title:hover {
+    color: var(--color-terracotta);
+    text-decoration: underline;
+  }
+</style>

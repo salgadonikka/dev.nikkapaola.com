@@ -1,0 +1,141 @@
+---
+/**
+ * Visual legend of Tamelo's circle task states for MDX blog posts.
+ * Usage:
+ *   import CircleStates from '../../components/CircleStates.astro';
+ *   <CircleStates
+ *     states={[
+ *       { state: "empty",     label: "Empty",     description: "Not yet scheduled for this day" },
+ *       { state: "planned",   label: "Planned",   description: "You intend to address this today" },
+ *       { state: "started",   label: "Started",   description: "Something happened. You began." },
+ *       { state: "completed", label: "Completed", description: "Done. Shaded in. Off your mind." },
+ *     ]}
+ *   />
+ *
+ * State values: "empty" | "planned" | "started" | "completed"
+ */
+interface CircleState {
+  state: 'empty' | 'planned' | 'started' | 'completed';
+  label: string;
+  description: string;
+}
+
+interface Props {
+  states: CircleState[];
+}
+
+const { states } = Astro.props;
+---
+
+<div class="circle-states">
+  {states.map(({ state, label, description }) => (
+    <div class="circle-state-row">
+      <div class={`circle-icon circle-icon--${state}`} aria-hidden="true">
+        {state === 'started' && <div class="circle-half" />}
+        {state === 'completed' && <div class="circle-fill" />}
+      </div>
+      <div class="circle-state-body">
+        <span class="circle-state-label">{label}</span>
+        <span class="circle-state-desc">{description}</span>
+      </div>
+    </div>
+  ))}
+</div>
+
+<style>
+  .circle-states {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 2.5rem 0;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .circle-state-row {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1rem 1.4rem;
+    background: var(--color-cream);
+    border-bottom: 1px solid var(--color-border);
+    transition: background 0.15s;
+  }
+
+  .circle-state-row:last-child {
+    border-bottom: none;
+  }
+
+  .circle-state-row:hover {
+    background: var(--color-warm-white);
+  }
+
+  /* ── Circle icons ── */
+  .circle-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Empty: just an outline */
+  .circle-icon--empty {
+    border: 2px solid var(--color-muted);
+    background: transparent;
+  }
+
+  /* Planned: darker outline, slightly tinted */
+  .circle-icon--planned {
+    border: 2px solid var(--color-ink);
+    background: transparent;
+  }
+
+  /* Started: half-filled — left half solid via clip */
+  .circle-icon--started {
+    border: 2px solid var(--color-terracotta);
+    background: transparent;
+    overflow: hidden;
+  }
+
+  .circle-half {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    background: var(--color-terracotta);
+  }
+
+  /* Completed: fully filled */
+  .circle-icon--completed {
+    border: 2px solid var(--color-terracotta);
+    background: var(--color-terracotta);
+  }
+
+  /* ── Labels & descriptions ── */
+  .circle-state-body {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .circle-state-label {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--color-ink);
+    letter-spacing: 0.02em;
+    min-width: 80px;
+  }
+
+  .circle-state-desc {
+    font-size: 0.82rem;
+    color: var(--color-muted);
+    line-height: 1.5;
+  }
+</style>

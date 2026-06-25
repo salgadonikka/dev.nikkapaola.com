@@ -1,0 +1,85 @@
+---
+// Tile 02 - Career Timeline + Featured Work
+import { timeline, featuredCaseStudy, projects } from "../../data/portfolioData.js";
+---
+
+<section
+  class="tile tile--alt"
+  id="tile-02"
+  data-section="02"
+  aria-label="Experience and Work"
+>
+  <div class="tile-inner t02">
+    <div class="t02-grid">
+      <!-- Left column: career timeline -->
+      <div class="t02-left">
+        <div class="tile-label">Experience</div>
+        <h2 class="t02-heading">Career Timeline</h2>
+
+        <div class="timeline">
+          {timeline.map((entry) => (
+            <div
+              class="tl-entry"
+              data-drawer={entry.drawerKey}
+              role="button"
+              tabindex="0"
+              aria-label={entry.ariaLabel}
+            >
+              <div class="tl-dot"></div>
+              <div class="tl-date">{entry.date}</div>
+              <div class="tl-company" set:html={entry.company} />
+              <div class="tl-role-group">
+                <div class="tl-role" set:html={entry.role} />
+              </div>
+              <p class="tl-desc" set:html={entry.desc} />
+              {entry.stack && <div class="tl-stack">{entry.stack}</div>}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- Right column: featured work -->
+      <div class="t02-right">
+        <div class="tile-label">Featured Work</div>
+
+        <div
+          class="fc-card"
+          data-drawer={featuredCaseStudy.drawerKey}
+          role="button"
+          tabindex="0"
+          aria-label={featuredCaseStudy.ariaLabel}
+        >
+          <div class="fc-eyebrow">{featuredCaseStudy.eyebrow}</div>
+          <div class="fc-head">
+            <div>
+              <h2 class="fc-title">{featuredCaseStudy.title}</h2>
+              <p class="fc-company">{featuredCaseStudy.company}</p>
+            </div>
+          </div>
+          <p class="fc-desc">{featuredCaseStudy.desc}</p>
+          <div class="fc-stack">{featuredCaseStudy.stack}</div>
+          <span class="card-more" aria-hidden="true">{featuredCaseStudy.cta}</span>
+        </div>
+
+        <div class="proj-grid">
+          {projects.map((proj) => (
+            <div
+              class="proj-card"
+              data-drawer={proj.drawerKey}
+              role="button"
+              tabindex="0"
+              aria-label={proj.ariaLabel}
+            >
+              <div class="proj-head">
+                <div class="proj-title" set:html={proj.title} />
+              </div>
+              <p class="proj-desc">{proj.desc}</p>
+              <div class="proj-stack">{proj.stack}</div>
+              <span class="card-more" aria-hidden="true">View details →</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

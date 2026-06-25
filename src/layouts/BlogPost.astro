@@ -1,0 +1,263 @@
+---
+import { Image } from "astro:assets";
+import { type CollectionEntry, getCollection } from "astro:content";
+import FormattedDate from "../components/FormattedDate.astro";
+import TopicTree from "../components/blog/TopicTree.astro";
+import SiteLayout from "./SiteLayout.astro";
+import { FEATURES, siteConfig } from "../site.config";
+import ReadingProgress from "../components/blog/ReadingProgress.astro";
+
+import type { ImageMetadata } from "astro";
+
+type Props = CollectionEntry<"blog">["data"] & {
+  id?: string;
+};
+
+const { id, title, description, pubDate, updatedDate, heroImage, category, tags, readingTime } =
+  Astro.props;
+
+const allPosts = (await getCollection("blog"))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Prev / next
+const currentIdx = id ? allPosts.findIndex((p) => p.id === id) : -1;
+const newerPost = currentIdx > 0 ? allPosts[currentIdx - 1] : null;
+const olderPost =
+  currentIdx !== -1 && currentIdx < allPosts.length - 1
+    ? allPosts[currentIdx + 1]
+    : null;
+---
+
+<SiteLayout title={title} description={description} contentClass="sl-content--split">
+
+  {FEATURES.readingProgress && <ReadingProgress />}
+
+  <div class="blog-split">
+
+    <!-- ── Topic tree panel ── -->
+    <div class="blog-tree-panel">
+      <TopicTree posts={allPosts} currentSlug={id} />
+    </div>
+
+    <!-- ── Reading pane ── -->
+    <div class="blog-reading-pane" id="reading-pane">
+      <article class="reading-post" data-pagefind-body>
+
+        <!-- Hero image -->
+        {heroImage && (
+          <div class="bp-hero">
+            <Image
+              src={heroImage}
+              alt={title}
+              widths={[800, 1200]}
+              sizes="(max-width: 768px) 100vw, 660px"
+              class="bp-hero-img"
+            />
+          </div>
+        )}
+
+        <!-- Header -->
+        <header class="bp-header">
+          {category && <div class="bp-category">{category}</div>}
+          <h1 class="bp-title">{title}</h1>
+          {description && <p class="bp-description">{description}</p>}
+          <div class="bp-meta">
+            <span class="bp-date"><FormattedDate date={pubDate} /></span>
+            {updatedDate && (
+              <span class="bp-updated">· Updated <FormattedDate date={updatedDate} /></span>
+            )}
+            {readingTime && <span class="bp-reading">· {readingTime}</span>}
+          </div>
+          {tags && tags.length > 0 && (
+            <div class="bp-tags">
+              {tags.map((tag) => (
+                <a href={`/blog?tag=${tag}`} class="bp-tag">#{tag}</a>
+              ))}
+            </div>
+          )}
+        </header>
+
+        <!-- Body -->
+        <div class="prose">
+          <slot />
+        </div>
+
+        <!-- Footer: prev/next -->
+        <footer class="bp-footer">
+          {(newerPost || olderPost) && (
+            <nav class="bp-nav" aria-label="Post navigation">
+              <div class="bp-nav-inner">
+                {olderPost ? (
+                  <a href={`/blog/${olderPost.id}/`} class="bp-nav-link">
+                    <span class="bp-nav-dir">← Older</span>
+                    <span class="bp-nav-title">{olderPost.data.title}</span>
+                  </a>
+                ) : <span />}
+                {newerPost ? (
+                  <a href={`/blog/${newerPost.id}/`} class="bp-nav-link bp-nav-link--next">
+                    <span class="bp-nav-dir">Newer →</span>
+                    <span class="bp-nav-title">{newerPost.data.title}</span>
+                  </a>
+                ) : <span />}
+              </div>
+            </nav>
+          )}
+          <a href="/blog" class="bp-back">← All posts</a>
+        </footer>
+
+      </article>
+    </div>
+
+  </div>
+
+</SiteLayout>
+
+<style>
+  /* Hero image */
+  .bp-hero {
+    margin-bottom: 40px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+  }
+  .bp-hero-img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Header */
+  .bp-header {
+    margin-bottom: 48px;
+    padding-bottom: 36px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .bp-category {
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-terracotta);
+    font-weight: 500;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .bp-category::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 1px;
+    background: var(--color-terracotta);
+  }
+
+  .bp-title {
+    font-family: var(--font-serif);
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--color-ink);
+    margin-bottom: 16px;
+  }
+
+  .bp-description {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--color-muted);
+    line-height: 1.7;
+    font-weight: 300;
+    margin-bottom: 20px;
+    max-width: 520px;
+  }
+
+  .bp-meta {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    font-size: 0.78rem;
+    color: var(--color-muted);
+    flex-wrap: wrap;
+  }
+
+  .bp-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 16px;
+  }
+
+  .bp-tag {
+    font-size: 0.7rem;
+    color: var(--color-muted);
+    background: var(--color-warm-white);
+    border: 1px solid var(--color-border);
+    padding: 3px 10px;
+    border-radius: 3px;
+    text-decoration: none;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .bp-tag:hover { border-color: var(--color-terracotta); color: var(--color-terracotta); }
+
+  /* Footer */
+  .bp-footer {
+    margin-top: 56px;
+    padding-top: 28px;
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .bp-nav-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .bp-nav-link {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-decoration: none;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    background: var(--color-warm-white);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .bp-nav-link:hover { border-color: var(--color-terracotta); background: var(--color-cream); }
+  .bp-nav-link--next { text-align: right; }
+
+  .bp-nav-dir {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-terracotta);
+    font-weight: 500;
+  }
+
+  .bp-nav-title {
+    font-size: 0.8rem;
+    color: var(--color-ink);
+    line-height: 1.4;
+    font-family: var(--font-serif);
+  }
+
+  .bp-back {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color 0.2s;
+    align-self: flex-start;
+  }
+  .bp-back:hover { color: var(--color-terracotta); }
+
+  @media (max-width: 768px) {
+    .bp-nav-inner { grid-template-columns: 1fr; }
+    .bp-nav-link--next { text-align: left; }
+  }
+</style>

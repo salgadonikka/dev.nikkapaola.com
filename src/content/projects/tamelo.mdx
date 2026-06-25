@@ -1,0 +1,56 @@
+---
+name: Tamelo
+tagline: A weekly task planner built to escape the procrastination sinkhole.
+description: A rolling 7-day calendar with circular state indicators that make it easy to plan, defer, and actually finish things. Started as a notebook, now becoming an app.
+category: App
+status: In Progress
+featured: true
+order: 1
+stack:
+  - React 18
+  - TypeScript
+  - ASP.NET Core 10
+  - Supabase
+  - PostgreSQL
+screenshots:
+  - "https://media.nikkapaola.com/Projects/Tamelo/desktop-light.png"
+  - "https://media.nikkapaola.com/Projects/Tamelo/tablet-light.png"
+  - "https://media.nikkapaola.com/Projects/Tamelo/phone-light.png"
+  - "https://media.nikkapaola.com/Projects/Tamelo/kanban-light.png"
+screenshotCaptions:
+  - "Desktop view of the main calendar interface, showing tasks in various states."
+  - "Tablet view, demonstrating responsive design and task details."
+  - "Mobile view, optimized for on-the-go task management."
+  - "Kanban-style view for visualizing task flow and status across the week."
+tags:
+  - tamelo
+  - productivity
+  - app
+---
+
+## Overview
+
+Tamelo started as a notebook.
+
+I had a problem most people probably recognize: I'd make a list of tasks, feel good about it, and then spend the rest of the week watching them roll forward, day after day, never actually getting done. The tasks weren't wrong. The system was.
+
+So I designed a simple structure in a physical notebook: a rolling 7-day grid where each task had a circular state indicator. Open circle meant not started. Half-filled meant in progress. Fully filled meant done. A task could move to the next day if needed, but you could see it accumulate, which created just enough friction to actually close things.
+
+It worked. So I started building it as an app.
+
+## How it works
+
+Each week is a 7-day view. Tasks are created and assigned to a day. Each task has one of four states that you toggle through by tapping the indicator:
+
+- **Not started** - empty circle
+- **In progress** - half-filled
+- **Done** - filled
+- **Deferred** - moved to the next available day
+
+The deferred state is the core mechanic. You can move a task, but you can't make it disappear. It follows you until you deal with it or consciously decide to delete it. That visibility is what makes the friction useful.
+
+## What's next
+
+- Recurring tasks
+- Public release
+- Mobile app (React Native)

@@ -1,0 +1,177 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import {
+  identity,
+  status,
+  contactLinks,
+  projects,
+} from "../data/portfolioData.js";
+import { metaDescription } from "../data/portfolioData.js";
+import "../styles/landing.css";
+
+const pageTitle = `${identity.name} — Full-Stack Software Engineer`;
+
+const projectSlugMap: Record<string, string> = {
+  tamelo: "/projects/tamelo",
+  mymedstory: "/projects/mymedstory",
+  devutilityhub: "/projects/dev-utility-hub",
+};
+
+const featuredProjects = (
+  ["tamelo", "devutilityhub", "mymedstory"] as const
+).map((key) => {
+  const p = projects.find((proj) => proj.drawerKey === key)!;
+  return {
+    ...p,
+    href: projectSlugMap[key],
+    stackTags: p.stack.split(" · ").slice(0, 3),
+  };
+});
+
+const emailLink = contactLinks.find((l) => l.type === "email");
+const linkedinLink = contactLinks.find((l) => l.type === "linkedin");
+
+const buildTiles = [
+  {
+    title: "Enterprise-Scale Systems",
+    desc: "Multi-tier platforms for 100+ clients",
+  },
+  {
+    title: "Full-Stack Delivery",
+    desc: ".NET/C# backend, React/TypeScript frontend",
+  },
+  {
+    title: "Cloud & Data",
+    desc: "Azure, SQL Server/Postgres, ETL pipelines",
+  },
+  {
+    title: "Team Leadership",
+    desc: "Mentoring, cross-timezone delivery, people management",
+  },
+];
+---
+
+<!doctype html>
+<html lang="en" class="lp-html">
+  <head>
+    <BaseHead title={pageTitle} description={metaDescription} />
+    <script is:inline>
+      document.documentElement.dataset.theme = "light";
+    </script>
+  </head>
+
+  <body>
+    <!-- ══ HEADER ══ -->
+    <header class="lp-header">
+      <a href="/" class="lp-logo-wrap" aria-label="dev.nikkapaola.com home">
+        <span class="lp-monogram">NPS.</span>
+      </a>
+      <nav class="lp-header-nav" aria-label="Main navigation">
+        <a href="/portfolio">Portfolio</a>
+        <a href="/blog">Blog</a>
+        <a href="/projects">Projects</a>
+      </nav>
+    </header>
+
+    <!-- ══ HERO ══ -->
+    <section class="lp-hero" id="hero" aria-label="Introduction">
+      <div class="lp-hero-deco" aria-hidden="true"></div>
+      <div class="lp-hero-inner">
+        <p class="lp-hero-pre">NIKKA SALGADO IS A</p>
+
+        <h1 class="lp-display-stack">
+          <span class="lp-ds-line lp-ds-line--accent">full stack</span>
+          <span class="lp-ds-line lp-ds-line--dark">software engineer</span>
+          <span class="lp-ds-amp">&amp;</span>
+          <span class="lp-ds-line lp-ds-line--accent">people manager</span>
+        </h1>
+
+        <div class="lp-hero-foot">
+          <div class="lp-avail-badge">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            {status.availability} · {status.location}
+          </div>
+          <div class="lp-cta-group">
+            <a href="/portfolio" class="lp-btn-primary">See My Work</a>
+            {
+              emailLink && (
+                <a href={emailLink.href} class="lp-btn-ghost">
+                  Get in Touch
+                </a>
+              )
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ WHAT I BUILD ══ -->
+    <section
+      class="lp-section lp-section--dark"
+      id="what-i-build"
+      aria-labelledby="build-heading"
+    >
+      <div class="lp-section-inner">
+        <div class="lp-section-label" id="build-heading">What I Build</div>
+        <div class="lp-skills-list">
+          {
+            buildTiles.map((tile, i) => (
+              <div class="lp-skill-row">
+                <span class="lp-skill-num">0{i + 1}</span>
+                <div class="lp-skill-body">
+                  <strong class="lp-skill-title">{tile.title}</strong>
+                  <span class="lp-skill-desc">{tile.desc}</span>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ FEATURED WORK ══ -->
+    <section
+      class="lp-section lp-section--alt"
+      id="featured-work"
+      aria-labelledby="work-heading"
+    >
+      <div class="lp-section-inner">
+        <div class="lp-section-label" id="work-heading">Featured Work</div>
+        <div class="lp-works-list">
+          {
+            featuredProjects.map((proj, i) => (
+              <a href={proj.href} class="lp-work-row">
+                <span class="lp-work-num">0{i + 1}</span>
+                <span class="lp-work-name" set:html={proj.title} />
+                <span class="lp-work-tags">{proj.stackTags.join(" · ")}</span>
+                <span class="lp-work-arrow" aria-hidden="true">
+                  →
+                </span>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ CTA STRIP ══ -->
+    <section class="lp-cta-strip" id="cta" aria-label="Contact">
+      <div class="lp-cta-strip-inner">
+        <p class="lp-cta-statement">
+          Let's build<br />something<span class="lp-cta-period">.</span>
+        </p>
+        <div class="lp-cta-links">
+          <a href="/portfolio">View my work</a>
+          {emailLink && <a href={emailLink.href}>{emailLink.label}</a>}
+          {
+            linkedinLink && (
+              <a href={linkedinLink.href} target="_blank" rel="noopener">
+                {linkedinLink.label}
+              </a>
+            )
+          }
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

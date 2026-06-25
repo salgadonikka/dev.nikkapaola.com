@@ -1,0 +1,90 @@
+---
+import type { CollectionEntry } from "astro:content";
+import FormattedDate from "../FormattedDate.astro";
+
+interface Props {
+  posts: CollectionEntry<"blog">[];
+  currentSlug?: string;
+}
+
+const { posts, currentSlug } = Astro.props;
+
+// Group posts by category, sorted by date descending within each group
+const grouped = posts.reduce(
+  (acc, post) => {
+    const cat = post.data.category ?? "Notes";
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(post);
+    return acc;
+  },
+  {} as Record<string, CollectionEntry<"blog">[]>,
+);
+
+// Sort categories alphabetically; sort posts within each newest-first
+const categories = Object.entries(grouped)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([cat, catPosts]) => ({
+    cat,
+    posts: catPosts.sort(
+      (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+    ),
+  }));
+
+// Which categories contain the active post (pre-open them)
+const activeCats = new Set(
+  categories
+    .filter(({ posts: p }) => p.some((post) => post.id === currentSlug))
+    .map(({ cat }) => cat),
+);
+---
+
+<nav class="topic-tree" aria-label="Blog posts by topic">
+  <div class="tree-header">
+    <span class="tree-title">Topics</span>
+  </div>
+
+  {
+    categories.map(({ cat, posts: catPosts }) => {
+      const isPreOpen = activeCats.has(cat);
+      return (
+        <div class="tree-group">
+          <button
+            class={`tree-cat-btn${isPreOpen ? " is-open" : ""}`}
+            aria-expanded={isPreOpen ? "true" : "false"}
+          >
+            <span class="tree-chevron" aria-hidden="true">▶</span>
+            <span class="tree-cat-name">{cat}</span>
+            <span class="tree-cat-count">{catPosts.length}</span>
+          </button>
+          <ul class={`tree-posts${isPreOpen ? " is-open" : ""}`}>
+            {catPosts.map((post) => (
+              <li>
+                <a
+                  href={`/blog/${post.id}/`}
+                  class={`tree-post-link${post.id === currentSlug ? " is-active" : ""}`}
+                  aria-current={post.id === currentSlug ? "page" : undefined}
+                >
+                  <span class="tree-post-title">{post.data.title}</span>
+                  <span class="tree-post-date">
+                    <FormattedDate date={post.data.pubDate} />
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    })
+  }
+</nav>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>(".tree-cat-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const isOpen = btn.classList.toggle("is-open");
+      btn.setAttribute("aria-expanded", String(isOpen));
+      const list = btn.nextElementSibling as HTMLElement | null;
+      if (list) list.classList.toggle("is-open", isOpen);
+    });
+  });
+</script>

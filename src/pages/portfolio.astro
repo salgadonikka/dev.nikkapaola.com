@@ -1,0 +1,113 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import { SITE_TITLE } from "../consts";
+import { metaDescription } from "../data/portfolioData.js";
+import PortfolioMobileBar from "../components/portfolio/PortfolioMobileBar.astro";
+import PortfolioSidebar from "../components/portfolio/PortfolioSidebar.astro";
+import Tile01Intro from "../components/portfolio/Tile01Intro.astro";
+import Tile02Experience from "../components/portfolio/Tile02Experience.astro";
+import Tile03Contact from "../components/portfolio/Tile03Contact.astro";
+import "../styles/portfolio.css";
+
+const sections = [
+  { num: "01", label: "Introduction", id: "tile-01" },
+  { num: "02", label: "Experience", id: "tile-02" },
+  { num: "03", label: "Contact", id: "tile-03" },
+];
+
+const tabletSections = [
+  { num: "01", label: "Introduction" },
+  { num: "—", label: "Skills & Stack" },
+  { num: "02", label: "Career Timeline" },
+  { num: "—", label: "Featured Work" },
+  { num: "03", label: "Contact" },
+];
+---
+
+<!doctype html>
+<html lang="en" class="pf2-html">
+  <head>
+    <BaseHead title={SITE_TITLE} description={metaDescription} />
+    <!-- Portfolio is always light mode regardless of user preference -->
+    <script is:inline>
+      document.documentElement.dataset.theme = "light";
+    </script>
+  </head>
+
+  <body>
+    <PortfolioMobileBar sections={sections} />
+
+    <!-- ══ MAIN LAYOUT ══ -->
+    <div class="pf2-layout">
+      <PortfolioSidebar sections={sections} tabletSections={tabletSections} />
+
+      <!-- ══════ RIGHT PANEL ══════ -->
+      <main class="pf2-right" id="pf2-right" tabindex="-1">
+        <Tile01Intro />
+        <Tile02Experience />
+        <Tile03Contact />
+      </main>
+    </div>
+
+    <!-- ── DETAIL DRAWER ── -->
+    <div class="drawer-backdrop" id="drawer-backdrop" aria-hidden="true"></div>
+    <aside
+      class="drawer"
+      id="drawer"
+      aria-label="Detail panel"
+      aria-hidden="true"
+    >
+      <button
+        class="drawer-close"
+        id="drawer-close"
+        aria-label="Close detail panel">✕</button
+      >
+      <div class="drawer-content" id="drawer-content"></div>
+    </aside>
+
+    <!-- ── PROGRESS DOTS (desktop: 3) ── -->
+    <div
+      class="progress-dots"
+      id="progress-dots"
+      role="navigation"
+      aria-label="Section navigation"
+    >
+      {
+        sections.map((s, i) => (
+          <button
+            class={`pdot${i === 0 ? " pdot--active" : ""}`}
+            data-tile={`tile-0${i + 1}`}
+            aria-label={`Section ${i + 1} of ${sections.length}: ${s.label}`}
+          />
+        ))
+      }
+    </div>
+
+    <!-- ── PROGRESS DOTS (tablet: 5) ── -->
+    <div
+      class="progress-dots progress-dots--tablet"
+      id="progress-dots-tablet"
+      role="navigation"
+      aria-label="Section navigation"
+    >
+      {
+        [
+          "Introduction",
+          "Skills & Stack",
+          "Career Timeline",
+          "Featured Work",
+          "Contact",
+        ].map((label, i) => (
+          <button
+            class={`pdot${i === 0 ? " pdot--active" : ""}`}
+            aria-label={`Section ${i + 1} of 5: ${label}`}
+          />
+        ))
+      }
+    </div>
+
+    <script>
+      import "../scripts/portfolioInteractions.js";
+    </script>
+  </body>
+</html>

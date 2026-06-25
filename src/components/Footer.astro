@@ -1,0 +1,76 @@
+---
+import { siteConfig } from '../site.config';
+
+const { logo, footerLinks, author } = siteConfig;
+const year = new Date().getFullYear();
+---
+
+<footer>
+  <a href="/" class="footer-logo">{logo.part1}<span>{logo.part2}</span>{logo.suffix}</a>
+  <nav class="footer-links">
+    {footerLinks.map((link) => (
+      <a
+        href={link.href}
+        target={link.external ? '_blank' : undefined}
+        rel={link.external ? 'noopener' : undefined}
+      >
+        {link.label}
+      </a>
+    ))}
+  </nav>
+  <p class="footer-copy">© {year} {author.shortName}</p>
+</footer>
+
+<style>
+  footer {
+    padding: 40px 60px;
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .footer-logo {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--color-ink);
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .footer-logo span { color: var(--color-terracotta); }
+
+  .footer-links {
+    display: flex;
+    gap: 28px;
+  }
+
+  .footer-links a {
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--color-terracotta); }
+
+  .footer-copy {
+    font-size: 0.78rem;
+    color: var(--color-muted);
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    footer {
+      flex-direction: column;
+      text-align: center;
+      padding: 40px 24px;
+      gap: 20px;
+    }
+    .footer-links { gap: 16px; flex-wrap: wrap; justify-content: center; }
+  }
+</style>

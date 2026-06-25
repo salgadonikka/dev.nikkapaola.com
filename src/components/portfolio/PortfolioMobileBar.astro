@@ -1,0 +1,67 @@
+---
+import { identity, status, contactLinks } from "../../data/portfolioData.js";
+
+interface Props {
+  sections: { num: string; label: string; id: string }[];
+}
+const { sections } = Astro.props;
+---
+
+<!-- ── MOBILE TOP BAR ── -->
+<div class="mob-bar" id="mob-bar">
+  <a href="/" class="mob-monogram">{identity.monogram}</a>
+  <button
+    class="mob-hamburger"
+    id="mob-hamburger"
+    aria-label="Open navigation"
+    aria-expanded="false"
+  >
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<!-- ── MOBILE OVERLAY ── -->
+<div class="mob-overlay" id="mob-overlay" aria-hidden="true">
+  <button class="mob-close" id="mob-close" aria-label="Close navigation">✕</button>
+  <nav class="mob-nav-list">
+    {sections.map((s) => (
+      <a href={`#${s.id}`} class="mob-nav-link" data-section={s.num}>
+        <span class="mob-nav-num">{s.num}</span>
+        <span class="mob-nav-label">{s.label}</span>
+      </a>
+    ))}
+    <div class="mob-nav-divider"></div>
+    <a href="/blog" class="mob-nav-link mob-nav-link--site">
+      <span class="mob-nav-num">→</span>
+      <span class="mob-nav-label">Blog</span>
+    </a>
+    <a href="/projects" class="mob-nav-link mob-nav-link--site">
+      <span class="mob-nav-num">→</span>
+      <span class="mob-nav-label">Projects</span>
+    </a>
+  </nav>
+  <div class="mob-overlay-foot">
+    <div class="mob-avail">
+      <span class="pulse-dot"></span>
+      {status.availability} · {status.location}
+    </div>
+    <div class="mob-contact-links">
+      {contactLinks.filter((l) => l.showInMobile).map((link) => (
+        <a
+          href={link.href}
+          target={link.external ? "_blank" : undefined}
+          rel={link.external ? "noopener" : undefined}
+        >
+          {link.label}
+        </a>
+      ))}
+    </div>
+    <a href="https://nikkapaola.com" class="mob-site-back" target="_blank" rel="noopener">← nikkapaola.com</a>
+  </div>
+</div>
+
+<!-- ── MOBILE IDENTITY STRIP (hidden on desktop) ── -->
+<div class="mob-identity" aria-hidden="true">
+  <div class="mob-identity-name">{identity.name}</div>
+  <div class="mob-identity-role" set:html={identity.role} />
+</div>
