@@ -217,8 +217,9 @@ export const siteConfig = {
 
   nav: [
     { href: '/portfolio', label: 'Portfolio' },
-    { href: '/blog',      label: 'Blog'      },
+    { href: '/about',      label: 'About'      },
     { href: '/projects',  label: 'Projects'  },
+    { href: '/blog',      label: 'Blog'      }
   ],
 
   footerLinks: [

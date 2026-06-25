@@ -1,0 +1,29 @@
+---
+import { visibleNav } from "../site.config";
+
+const path = Astro.url.pathname;
+
+function isActive(href: string) {
+  return href !== "/" && path.startsWith(href);
+}
+---
+
+<header class="lp-header">
+  <a href="/" class="lp-logo-wrap" aria-label="dev.nikkapaola.com home">
+    <span class="lp-monogram">NPS.</span>
+    <!--<span class="lp-logo-name">dev.<em>nikkapaola</em></span> -->
+  </a>
+  <nav class="lp-header-nav" aria-label="Main navigation">
+    {
+      visibleNav.map((item) => (
+        <a
+          href={item.href}
+          class={isActive(item.href) ? "is-active" : undefined}
+          aria-current={isActive(item.href) ? "page" : undefined}
+        >
+          {item.label}
+        </a>
+      ))
+    }
+  </nav>
+</header>

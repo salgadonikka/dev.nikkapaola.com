@@ -1,47 +1,362 @@
 ---
-import AboutHeroImage from "../assets/blog-placeholder-about.jpg";
-import AboutMePhoto from "../assets/AboutMePhoto.png";
-import Layout from "../layouts/BlogPost.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
+import { SITE_TITLE } from "../consts";
+import { bio, skillGroups, contactLinks } from "../data/portfolioData.js";
+import "../styles/projects.css";
+
+const emailLink = contactLinks.find((l) => l.type === "email");
+const linkedinLink = contactLinks.find((l) => l.type === "linkedin");
 ---
 
-<Layout
-  title="About Me"
-  heroImage={AboutHeroImage}
-  description="Welcome to my blog!"
-  pubDate={new Date("April 01 2026")}
-  showAuthorCard={false}
+<SiteLayout
+  title={`About — ${SITE_TITLE}`}
+  description="Full-stack software engineer with 11+ years of experience in .NET and React. Lead engineer and people manager at WTW, open to roles in Poland and Europe."
 >
-  <p>Hi, I'm Nikka.</p>
+  <main class="about-main">
+    <!-- ══ PAGE HEADER ════════════════════════════════════════════════ -->
+    <div class="proj-page-header">
+      <h1 class="proj-page-title">About <em>Me</em></h1>
+      <p class="proj-page-subtitle">
+        Full-stack engineer with 11+ years of production experience in .NET and
+        React. Currently a lead engineer and people manager, open to mid-senior
+        roles in Poland and Europe.
+      </p>
+    </div>
 
-  <p>
-    I'm a developer by trade, traveler by habit, and, for the past few years,
-    someone who has been very slowly learning the difference between waiting and
-    living.
-  </p>
+    <!-- ══ MAIN GRID ══════════════════════════════════════════════════ -->
+    <div class="about-grid">
+      <!-- ── Left: prose ── -->
+      <div class="about-prose">
+        <section class="about-section">
+          <h2 class="about-section-title">Background</h2>
+          <p>
+            I'm a full-stack software engineer with over 11 years of experience
+            delivering production software across enterprise, fintech, and SaaS
+            domains, primarily in C# / .NET and React. Most of my career has
+            been spent as a core contributor to a large-scale enterprise
+            Benefits Administration platform, working across backend systems,
+            REST APIs, React frontends, SQL Server, and ETL pipelines.
+          </p>
+          <p>
+            Over time I grew from individual contributor to technical lead, then
+            into a formal people manager role, owning the APAC shift team,
+            running code reviews, mentoring junior engineers, and coordinating
+            cross-timezone delivery with stakeholders in the US. I care about
+            code quality, clean architecture, and making sure the people on my
+            team have what they need to do their best work.
+          </p>
+        </section>
 
-  <p>
-    A few years ago, everything went on pause. I was diagnosed with thyroid
-    cancer, and for a while, life became a waiting room. Waiting for results,
-    waiting for recovery, waiting to feel like myself again. What I didn't
-    expect was what the waiting would teach me. Gratitude showed up slowly, then
-    all at once. So did clarity. And eventually, so did everything I'd been
-    afraid I might miss.
-  </p>
+        <section class="about-section">
+          <h2 class="about-section-title">Career highlights</h2>
+          <p>
+            My career started in banking. I spent three and a half years at
+            EastWest Bank as a programmer/analyst, working through a core
+            banking system transformation and building the internal tooling that
+            kept operations running. It was detail-heavy work and it taught me a
+            lot about writing software that actually has to work.
+          </p>
+          <p>
+            From there I moved into software R&amp;D at Deltek, where I built
+            internal developer tools and maintained an automation framework used
+            across the company's full product suite. It was my first real taste
+            of engineering for other engineers, and I loved it.
+          </p>
+          <p>
+            Since 2019 I've been at WTW in Manila, working on BenefitConnect. It
+            is a large-scale enterprise benefits administration platform serving
+            over 100 global clients. I started as a full-stack engineer, and
+            eventually moved into people management, owning the APAC shift team.
+            Long tenure, a lot of growth.
+          </p>
+          <a href="/portfolio" class="about-portfolio-link"
+            >See the full picture on my Portfolio →</a
+          >
+        </section>
 
-  <p>
-    I used to put things on pause. Waiting until I was ready. Waiting until it
-    was the right time. Cancer has a way of ending that habit. Now I try to live
-    like everything counts, because it does. There's a reason for everything.
-    Nothing is actually on pause. It's all on purpose.
-  </p>
+        <section class="about-section">
+          <h2 class="about-section-title">Languages</h2>
+          <p>
+            English is my primary working language. It's what I write code in,
+            communicate across timezones in, and think in day to day. Filipino /
+            Tagalog is my mother tongue. I'm currently actively learning Polish
+            slowly but with intention.
+          </p>
+          <ul class="about-lang-list">
+            {bio.languages.map((lang) => <li>{lang}</li>)}
+          </ul>
+        </section>
+      </div>
 
-  <p>
-    This blog is where I put the things I want to remember, and the things I
-    think might help someone else who is quietly going through the same thing. I
-    write about life after Thyroid cancer, building things as a developer,
-    managing money without losing my mind, traveling whenever I can, and
-    whatever else I happen to be figuring out that week.
-  </p>
+      <!-- ── Right: sidebar ── -->
+      <aside class="about-sidebar">
+        <div class="about-card">
+          <h3 class="about-card-title">Core stack</h3>
+          <ul class="about-card-list">
+            {
+              skillGroups
+                .filter((g) =>
+                  [
+                    "Backend &amp; API",
+                    "Frontend",
+                    "Data &amp; Cloud",
+                  ].includes(g.label),
+                )
+                .flatMap((g) =>
+                  g.skills.filter((s) => s.variant === "bp").slice(0, 4),
+                )
+                .slice(0, 10)
+                .map((s) => <li>{s.name}</li>)
+            }
+          </ul>
+        </div>
 
-  <p>Welcome to my little corner of the internet.</p>
-</Layout>
+        <div class="about-card">
+          <h3 class="about-card-title">Industries</h3>
+          <ul class="about-card-list">
+            {bio.industries.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+
+        <div class="about-card about-card--connect">
+          <h3 class="about-card-title">Say hello</h3>
+          <p class="about-card-body">
+            Always happy to talk engineering, career moves, or whatever you're
+            building. No pitch needed.
+          </p>
+          <div class="about-card-links">
+            {
+              emailLink && (
+                <a href={emailLink.href} class="about-link-primary">
+                  Send me an email
+                </a>
+              )
+            }
+            {
+              linkedinLink && (
+                <a
+                  href={linkedinLink.href}
+                  class="about-link-secondary"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Find me on LinkedIn
+                </a>
+              )
+            }
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</SiteLayout>
+
+<style>
+  .about-main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 120px 60px 100px;
+  }
+
+  /* Override proj-page-title for the about page */
+  :global(.proj-page-title) {
+    font-size: clamp(2.8rem, 5vw, 4rem);
+    color: var(--color-terracotta);
+  }
+
+  :global(.proj-page-title em) {
+    color: var(--color-terracotta);
+    opacity: 0.65;
+  }
+
+  /* ── Grid ── */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 56px;
+    align-items: start;
+  }
+
+  /* ── Prose sections ── */
+  .about-prose {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+  }
+
+  .about-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .about-section-title {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: var(--color-terracotta);
+    padding-bottom: 10px;
+    border-bottom: 1px solid
+      color-mix(in srgb, var(--color-terracotta) 30%, transparent);
+  }
+
+  .about-section p {
+    font-size: 0.92rem;
+    color: var(--color-ink-soft);
+    line-height: 1.8;
+  }
+
+  .about-portfolio-link {
+    font-size: 0.85rem;
+    color: var(--color-terracotta);
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.2s;
+  }
+
+  .about-portfolio-link:hover {
+    opacity: 0.75;
+  }
+
+  /* ── Language list ── */
+  .about-lang-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .about-lang-list li {
+    font-size: 0.88rem;
+    color: var(--color-ink-soft);
+    padding-left: 12px;
+    position: relative;
+  }
+
+  .about-lang-list li::before {
+    content: "–";
+    position: absolute;
+    left: 0;
+    color: var(--color-muted);
+  }
+
+  /* ── Sidebar cards ── */
+  .about-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: sticky;
+    top: 84px;
+  }
+
+  .about-card {
+    background: var(--color-surface, #f5f2ee);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .about-card-title {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    font-weight: 600;
+  }
+
+  .about-card-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .about-card-list li {
+    font-size: 0.82rem;
+    color: var(--color-ink-soft);
+    padding-left: 12px;
+    position: relative;
+  }
+
+  .about-card-list li::before {
+    content: "–";
+    position: absolute;
+    left: 0;
+    color: var(--color-muted);
+  }
+
+  .about-card-body {
+    font-size: 0.82rem;
+    color: var(--color-ink-soft);
+    line-height: 1.6;
+  }
+
+  .about-card-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .about-link-primary {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-cream);
+    background: var(--color-ink);
+    padding: 8px 16px;
+    border-radius: 3px;
+    text-decoration: none;
+    text-align: center;
+    transition: background 0.2s;
+  }
+
+  .about-link-primary:hover {
+    background: var(--color-terracotta);
+  }
+
+  .about-link-secondary {
+    font-size: 0.8rem;
+    color: var(--color-ink-soft);
+    text-decoration: none;
+    text-align: center;
+    padding: 7px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    transition:
+      border-color 0.2s,
+      color 0.2s;
+  }
+
+  .about-link-secondary:hover {
+    color: var(--color-terracotta);
+    border-color: var(--color-terracotta);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .about-main {
+      padding: 100px 32px 80px;
+    }
+
+    .about-grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+
+    .about-sidebar {
+      position: static;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .about-main {
+      padding: 100px 24px 80px;
+    }
+  }
+</style>
