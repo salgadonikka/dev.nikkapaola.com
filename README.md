@@ -32,8 +32,9 @@ npm run astro      # run Astro CLI (e.g. astro check, astro add)
 
 | Route              | File                              | Notes                                              |
 | ------------------ | --------------------------------- | -------------------------------------------------- |
-| `/`                | `src/pages/index.astro`           | Landing page — hero, featured projects, bio strip  |
+| `/`                | `src/pages/index.astro`           | Landing page — hero with hover photo swap          |
 | `/portfolio`       | `src/pages/portfolio.astro`       | Full portfolio: skills, timeline, project drawers  |
+| `/about`           | `src/pages/about.astro`           | Bio, career highlights, skills sidebar             |
 | `/blog`            | `src/pages/blog/index.astro`      | Blog listing; `?cat=` and `?tag=` filters          |
 | `/blog/[slug]`     | `src/pages/blog/[...slug].astro`  | Individual posts via `BlogPost` layout             |
 | `/projects`        | `src/pages/projects/index.astro`  | Projects grid, sorted by featured + order          |
@@ -51,9 +52,10 @@ npm run astro      # run Astro CLI (e.g. astro check, astro add)
 | `src/site.config.ts` | Site identity, nav, social links, analytics IDs, feature flags |
 | `src/styles/global.css` | Design tokens (`@theme {}`), base styles, `.prose` |
 | `src/styles/portfolio.css` | All styles for the `/portfolio` page |
-| `src/styles/landing.css` | Styles for the `/` landing page |
-| `src/styles/site-layout.css` | Icon sidebar nav layout shared across pages |
-| `src/layouts/SiteLayout.astro` | Shell layout with icon-based sidebar navigation |
+| `src/styles/landing.css` | Styles for the `/` landing page and `SiteHeader` top bar |
+| `src/styles/site-layout.css` | Shell layout styles shared across non-landing pages |
+| `src/components/SiteHeader.astro` | Top nav bar (logo + nav links) used by all pages |
+| `src/layouts/SiteLayout.astro` | Shell layout with top header — used by all pages except `/` |
 | `src/content/blog/` | Blog posts as `.md` / `.mdx` files |
 | `src/content/projects/` | Project entries as `.md` / `.mdx` files |
 
