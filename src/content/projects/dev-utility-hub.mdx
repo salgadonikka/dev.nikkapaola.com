@@ -3,12 +3,23 @@ name: Dev Utility Hub
 tagline: A collection of tools and utilities for developers, built out of personal need and shared for the community.
 description: A collection of useful tools and utilities for developers, built out of personal need and shared for the community.
 category: App
-status: In Progress
+status: Live
+url: https://devtoolkit.nikkapaola.com/
 featured: false
 order: 6
 stack:
-  - .NET 8
-  - Blazor WebAssembly
+  - React 19
+  - TypeScript
+  - ASP.NET Core
+  - .NET 10
+  - Tailwind CSS v4
+screenshots:
+  - "https://media.nikkapaola.com/Projects/DevUtilityHub/01%20landing%20page.png"
+  - "https://media.nikkapaola.com/Projects/DevUtilityHub/02%20formatter.png"
+  - "https://media.nikkapaola.com/Projects/DevUtilityHub/03%20encode.png"
+  - "https://media.nikkapaola.com/Projects/DevUtilityHub/04%20text%20tools.png"
+  - "https://media.nikkapaola.com/Projects/DevUtilityHub/05%20diff.png"
+  - "https://media.nikkapaola.com/Projects/DevUtilityHub/06%20timestamp.png"
 tags:
   - dev-utility-hub
   - development
@@ -16,4 +27,34 @@ tags:
   - app
 ---
 
-Details coming soon.
+## Overview
+
+Dev Utility Hub started as a bookmark folder.
+
+Like most developers, I kept a loose collection of browser tabs for the things I reached for constantly — a JSON formatter here, a Base64 decoder there, something to diff two blocks of text. They were scattered across random sites, half of them ad-heavy, some requiring sign-ups, none of them mine. Eventually I got annoyed enough to just build the thing myself.
+
+The goal was simple: one place, no distractions, tools that actually work the way I want them to.
+
+## What's inside
+
+**Universal Formatter** — paste in JSON or XML and it'll prettify, minify, or validate it. Useful when you're staring at a one-liner API response and need to make sense of it fast.
+
+**Encoder / Decoder** — Base64, URL encoding, and HTML entities, all in one place. Encode and decode in either direction.
+
+**Text Tools** — a grab-bag of transformations I use regularly: case conversion, trimming whitespace, sorting lines, deduplicating, reversing. The kind of things you'd normally reach for a regex or a quick script to do.
+
+**Diff Checker** — side-by-side text comparison with line-level highlighting. Good for spotting what changed between two config files, two API responses, two anything.
+
+**Timestamp Converter** — convert Unix timestamps to human-readable dates and back, in both seconds and milliseconds. I check this more often than I'd like to admit.
+
+## How it's built
+
+All the actual processing logic lives in an ASP.NET Core Web API. The frontend is React — intentionally thin, just sending input and displaying output. There's no business logic in the UI.
+
+The backend follows a strict layered architecture: Controllers handle routing, Services orchestrate, and the Core layer holds pure algorithm implementations with no external dependencies. This made unit testing straightforward — the Core is just C# functions that take input and return output.
+
+The UI has a terminal-inspired design system with dark and light modes. It felt right for a developer tool.
+
+## What's next
+
+More tools as I run into more annoyances. A regex tester, a color converter, and a cron expression builder are on the shortlist.

@@ -1,0 +1,282 @@
+---
+title: "DevUtilityHub — Functional Reference"
+description: "What each tool does, how the UI works, and the design decisions behind it."
+pubDate: "2026-06-27"
+tags: ["devutilityhub", "developer-tools", "portfolio"]
+category: "Documentation"
+---
+
+{/* Adjust import paths to match your content directory depth */}
+import Callout from '../../../components/Callout.astro';
+import Highlight from '../../../components/Highlight.astro';
+import DataTable from '../../../components/DataTable.astro';
+import PostMeta from '../../../components/PostMeta.astro';
+import Pullquote from '../../../components/Pullquote.astro';
+
+<PostMeta
+  series="DevUtilityHub"
+  seriesOrder={1}
+  nextPost="Technical Reference"
+  nextPostHref="/blog/devutilityhub/02-technical-reference"
+/>
+
+DevUtilityHub is a stateless, web-based developer toolkit. Every operation — formatting,
+diffing, transforming, converting — is handled entirely by a .NET 10 Web API. The React
+frontend is a thin presentation layer: it sends input, renders output, and does nothing else.
+
+<Highlight>All processing lives in the API. The frontend's only job is to display what the server returns.</Highlight>
+
+This constraint is intentional. It keeps the frontend simple and the API independently
+testable, and means every tool is accessible as a plain REST endpoint — not just through
+the UI.
+
+---
+
+## Tools at a Glance
+
+<DataTable
+  caption="Available tools and their current status"
+  headers={["Tool", "Route", "What it does", "Status"]}
+  rows={[
+    ["Universal Formatter", "/formatter", "Prettify, minify, and validate JSON or XML", "Live"],
+    ["Text Tools",          "/text",      "Case conversion, trim, sort, deduplicate, reverse, line count", "Live"],
+    ["Diff Checker",        "/diff",      "Line-level text diff with added / removed statistics", "Live"],
+    ["Timestamp Converter", "/time",      "Unix ↔ human-readable, any IANA timezone", "Live"],
+    ["Encoder / Decoder",   "/encode",    "Base64, URL, and HTML encoding and decoding", "In progress"],
+  ]}
+/>
+
+---
+
+## Universal Formatter
+
+The formatter accepts JSON or XML and applies one of three actions — **prettify**,
+**minify**, or **validate**. Input type is detected automatically; you never need
+to declare it.
+
+### How detection works
+
+The API attempts to parse the input as JSON first. If that fails, it tries XML. If that
+also fails, it falls back to plain text. The detected type is included in every response
+so the UI can reflect what was found.
+
+<Callout type="tip" title="Override detection">
+  If auto-detection picks the wrong format, the request accepts an optional
+  <code>overrideType</code> field — <code>"json"</code>, <code>"xml"</code>, or
+  <code>"plain"</code> — that skips detection entirely.
+</Callout>
+
+### Operations
+
+<DataTable
+  headers={["Action", "What happens"]}
+  rows={[
+    ["Prettify",  "Parses the input and re-serializes it with standard indentation"],
+    ["Minify",    "Strips all non-significant whitespace to produce a single-line output"],
+    ["Validate",  "Parses the input and reports whether it is well-formed; does not transform the output"],
+  ]}
+/>
+
+If the input is malformed, the response returns the original text unchanged with
+`isValid: false` and a message describing the parse failure — so the UI can surface
+the exact error without a generic "invalid input" message.
+
+---
+
+## Text Tools
+
+Text Tools applies an ordered pipeline of transformations to the input. Operations are
+applied sequentially — the output of one becomes the input of the next.
+
+<Pullquote>Think of it as a Unix pipe: each operation takes the output of the previous one as its input.</Pullquote>
+
+### Case operations
+
+Case operations convert the entire text as one block, not line by line.
+
+<DataTable
+  caption="Mutually exclusive in the UI — the API accepts any combination"
+  headers={["Operation", "Example output"]}
+  rows={[
+    ["uppercase", "HELLO WORLD"],
+    ["lowercase", "hello world"],
+    ["titlecase", "Hello World"],
+    ["camelcase", "helloWorld"],
+    ["snakecase", "hello_world"],
+    ["kebabcase", "hello-world"],
+  ]}
+/>
+
+<Callout type="note">
+  The UI enforces mutual exclusivity for case operations — selecting one deselects the
+  others. The underlying API accepts any combination in the <code>operations</code> array,
+  and applies them in the order given.
+</Callout>
+
+### Edit operations
+
+Edit operations work line by line.
+
+<DataTable
+  headers={["Operation", "What it does"]}
+  rows={[
+    ["trim",    "Strips leading and trailing whitespace from each line"],
+    ["sort",    "Sorts lines alphabetically, case-sensitive"],
+    ["dedup",   "Removes duplicate lines, preserving the order of first occurrence"],
+    ["reverse", "Reverses the order of lines"],
+    ["count",   "Returns the number of lines as a plain integer string"],
+  ]}
+/>
+
+<Callout type="note" title="count is exclusive">
+  Selecting <code>count</code> in the UI deselects all other operations, since
+  a line count and a text transformation produce incompatible output types.
+  The response returns a bare integer string — for example, <code>"42"</code>.
+</Callout>
+
+---
+
+## Diff Checker
+
+The Diff Checker computes a line-level diff between two text blocks — an original and a
+modified version — and renders the result with color-coded highlighting.
+
+The diff is computed server-side using [DiffPlex](https://github.com/mmanela/diffplex),
+a well-tested .NET diff library. The API returns a flat list of lines where each entry
+carries a type tag: `added`, `removed`, or `unchanged`.
+
+### Reading the output
+
+<DataTable
+  headers={["Highlight", "Meaning"]}
+  rows={[
+    ["Green background", "Line is present in the modified text but absent from the original"],
+    ["Red background",   "Line is present in the original but absent from the modified text"],
+    ["No highlight",     "Line is unchanged in both texts"],
+  ]}
+/>
+
+A summary bar below the diff shows total added and removed line counts. Empty inputs
+produce an empty diff with counts of zero — no error, no output, just silence.
+
+---
+
+## Timestamp Converter
+
+The Timestamp Converter works in two directions. The active input pane changes based on
+the selected direction; the other pane is read-only and shows computed results.
+
+### Unix → Human
+
+Accepts a Unix timestamp in either seconds or milliseconds — a toggle switches between
+the two. The response always includes both, plus four formatted representations:
+
+<DataTable
+  headers={["Output field", "Format / notes"]}
+  rows={[
+    ["Seconds",      "Unix timestamp in whole seconds"],
+    ["Milliseconds", "Unix timestamp in milliseconds"],
+    ["UTC",          "RFC 2822 — e.g. Wed, 15 Nov 2023 06:13:20 GMT"],
+    ["ISO 8601",     "e.g. 2023-11-15T06:13:20.0000000Z"],
+    ["Local",        "Offset-aware string — e.g. 2023-11-15 01:13:20 −05:00 (requires a timezone selection)"],
+    ["Relative",     "Computed client-side via Intl.RelativeTimeFormat — e.g. 2 years ago"],
+  ]}
+/>
+
+### Human → Unix
+
+Accepts a wide range of date string formats parsed server-side:
+
+<DataTable
+  headers={["Input type", "Examples"]}
+  rows={[
+    ["ISO 8601",         "2023-11-14T22:13:00Z"],
+    ["Date + time",      "2023-11-14 22:13:00  ·  2023-11-14 22:13"],
+    ["Date only",        "2023-11-14  ·  11/14/2023"],
+    ["Shorthands",       "now  ·  today  ·  yesterday  ·  tomorrow"],
+    ["Natural language", "next Monday  ·  3 days ago  ·  last Friday"],
+  ]}
+/>
+
+Natural language parsing is handled by `Microsoft.Recognizers.Text.DateTime`, a library
+originally built for the Microsoft Bot Framework. It covers a wide range of English-language
+date expressions but is not exhaustive — unusual constructions may not parse.
+
+<Callout type="tip" title="Timezone selector">
+  The timezone dropdown lists all IANA timezone identifiers sorted by UTC offset. Selecting
+  a timezone affects the <strong>Local</strong> output column and anchors natural-language
+  inputs (like "tomorrow") to that zone rather than UTC.
+</Callout>
+
+---
+
+## Encoder / Decoder
+
+<Callout type="warning" title="Work in progress">
+  The Encoder / Decoder page is navigable, but the backend implementation is a stub. The
+  API endpoint accepts requests and returns empty output. The core encoding logic lives in
+  <code>Core/Encoders/</code> but is not yet wired to the service layer.
+</Callout>
+
+When complete, it will support encode and decode in three schemes:
+
+<DataTable
+  headers={["Scheme", "Use case"]}
+  rows={[
+    ["Base64",       "Binary-to-text transfer, embedding binary data in JSON or CSS"],
+    ["URL encoding", "Percent-encoding for query strings and path segments"],
+    ["HTML entities","Escaping characters with special meaning in HTML markup"],
+  ]}
+/>
+
+---
+
+## UI & Design
+
+<Pullquote>Every tool looks like a terminal panel. The aesthetic is intentional — this is a tool for developers, not a dashboard for managers.</Pullquote>
+
+The entire UI uses a **terminal-inspired design system** built on Tailwind CSS v4 and a
+custom set of CSS custom properties. There is no component library — every element is
+hand-rolled.
+
+### Theme system
+
+A persistent dark / light toggle is available in the header. The selected theme is stored
+in `localStorage` and applied synchronously by a script tag in `index.html` before React
+mounts — this prevents a flash of the wrong theme on page load.
+
+<DataTable
+  caption="CSS custom property tokens used across all components"
+  headers={["Token", "Purpose"]}
+  rows={[
+    ["--t-bg",           "Page background"],
+    ["--t-surface",      "Component background (panes, cards)"],
+    ["--t-surface-2",    "Elevated surface (dropdowns, tooltips)"],
+    ["--t-text",         "Primary text color"],
+    ["--t-text-dim",     "Secondary / muted text"],
+    ["--t-primary",      "Primary action color (buttons, highlights)"],
+    ["--t-error",        "Error state color"],
+    ["--t-border",       "Default border"],
+    ["--t-border-active","Focused / active border"],
+  ]}
+/>
+
+### Layout
+
+Each tool page uses a shared `PageLayout` component that provides the sidebar and content
+area. Inside the content area, each tool renders one or more `TerminalPane` components —
+the container that gives the UI its window-chrome framing. All input and output areas
+are `TextArea` components with a consistent label and border style.
+
+<Callout type="aside">
+  The fixed scanlines overlay is a single <code>div</code> with a repeating CSS gradient
+  and a very low opacity. It gives the UI a subtle CRT texture without being visually
+  distracting. The font is JetBrains Mono, applied globally via Google Fonts.
+</Callout>
+
+### API connection status
+
+A global `ApiStatusContext` tracks whether the backend is reachable. On mount, the app
+sends a `GET /health` request. If the response is a network error the header reflects
+that immediately, letting the user know before they attempt to use any tool. The status
+updates on every subsequent API call — no polling, no timers.

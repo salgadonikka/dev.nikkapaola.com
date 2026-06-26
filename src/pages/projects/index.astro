@@ -6,15 +6,17 @@ import "../../styles/projects.css";
 
 const all = await getCollection("projects", ({ data }) => !data.draft);
 
-const sorted = all.sort((a, b) => {
-  if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
-  return a.data.order - b.data.order;
-});
+const live     = all.filter(p => p.data.status === "Live")
+                    .sort((a, b) => a.data.order - b.data.order);
+const building = all.filter(p => p.data.status === "In Progress")
+                    .sort((a, b) => a.data.order - b.data.order);
+const planning = all.filter(p => p.data.status === "Planning" || p.data.status === "Paused")
+                    .sort((a, b) => a.data.order - b.data.order);
 ---
 
 <SiteLayout
   title={`Projects — ${SITE_TITLE}`}
-  description="Apps, side projects..things I'm building."
+  description="Apps, side projects, things I'm building."
 >
   <main class="projects-main">
     <div class="proj-page-header">
@@ -26,41 +28,131 @@ const sorted = all.sort((a, b) => {
       </p>
     </div>
 
-    <div class="project-grid">
-      {
-        sorted.map((project) => {
-          const statusSlug = project.data.status
-            .toLowerCase()
-            .replace(" ", "-");
-          return (
-            <a
-              href={`/projects/${project.id}`}
-              class={`project-card${project.data.featured ? " project-card--featured" : ""}`}
-            >
-              <div class="project-card-top">
-                <div class="project-meta">
-                  <span class="proj-category">{project.data.category}</span>
-                  <span class={`proj-status proj-status--${statusSlug}`}>
-                    {project.data.status}
-                  </span>
-                </div>
-                <h2 class="project-name">{project.data.name}</h2>
-                <p class="project-tagline">{project.data.tagline}</p>
-              </div>
-              <div class="project-card-bottom">
-                {project.data.stack && project.data.stack.length > 0 && (
-                  <div class="project-stack-pills">
-                    {project.data.stack.map((s) => (
-                      <span>{s}</span>
-                    ))}
+    <div class="project-list">
+
+      {live.length > 0 && (
+        <div class="project-group">
+          <div class="project-group-header">
+            <span class="project-group-dot project-group-dot--live" aria-hidden="true" />
+            Live
+          </div>
+          <div class="project-cards">
+            {live.map((project) => {
+              const { name, tagline, category, status, stack, url, coverImage } = project.data;
+              return (
+                <div class="project-card">
+                  {coverImage && (
+                    <a
+                      href={url ?? `/projects/${project.id}`}
+                      target={url ? "_blank" : undefined}
+                      rel={url ? "noopener noreferrer" : undefined}
+                      class="project-card-image"
+                      aria-label={url ? `Visit ${name}` : `View ${name} details`}
+                    >
+                      <img src={coverImage} alt={`${name} preview`} loading="lazy" />
+                      <div class="project-card-overlay">
+                        <span>{url ? "Visit site →" : "View details →"}</span>
+                      </div>
+                    </a>
+                  )}
+                  <div class="project-card-body">
+                    <div class="project-meta">
+                      <span class="proj-category">{category}</span>
+                      <span class="proj-status proj-status--live">{status}</span>
+                    </div>
+                    <h2 class="project-name">
+                      <a href={`/projects/${project.id}`}>{name}</a>
+                    </h2>
+                    <p class="project-tagline">{tagline}</p>
+                    {stack && stack.length > 0 && (
+                      <div class="project-stack-pills">
+                        {stack.map((s) => <span>{s}</span>)}
+                      </div>
+                    )}
+                    <a href={`/projects/${project.id}`} class="project-detail-link">
+                      View details →
+                    </a>
                   </div>
-                )}
-                <span class="project-arrow">View project →</span>
-              </div>
-            </a>
-          );
-        })
-      }
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {building.length > 0 && (
+        <div class="project-group">
+          <div class="project-group-header">
+            <span class="project-group-dot project-group-dot--building" aria-hidden="true" />
+            Building
+          </div>
+          <div class="project-cards">
+            {building.map((project) => {
+              const { name, tagline, category, status, stack, coverImage } = project.data;
+              return (
+                <div class="project-card">
+                  {coverImage && (
+                    <a
+                      href={`/projects/${project.id}`}
+                      class="project-card-image"
+                      aria-label={`View ${name} details`}
+                    >
+                      <img src={coverImage} alt={`${name} preview`} loading="lazy" />
+                      <div class="project-card-overlay">
+                        <span>View details →</span>
+                      </div>
+                    </a>
+                  )}
+                  <div class="project-card-body">
+                    <div class="project-meta">
+                      <span class="proj-category">{category}</span>
+                      <span class="proj-status proj-status--in-progress">{status}</span>
+                    </div>
+                    <h2 class="project-name">
+                      <a href={`/projects/${project.id}`}>{name}</a>
+                    </h2>
+                    <p class="project-tagline">{tagline}</p>
+                    {stack && stack.length > 0 && (
+                      <div class="project-stack-pills">
+                        {stack.map((s) => <span>{s}</span>)}
+                      </div>
+                    )}
+                    <a href={`/projects/${project.id}`} class="project-detail-link">
+                      View details →
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {planning.length > 0 && (
+        <div class="project-group">
+          <div class="project-group-header">
+            <span class="project-group-dot project-group-dot--planning" aria-hidden="true" />
+            On the list
+          </div>
+          <div class="project-rows">
+            {planning.map((project) => {
+              const { name, tagline, status } = project.data;
+              const statusSlug = status.toLowerCase().replace(" ", "-");
+              return (
+                <a href={`/projects/${project.id}`} class="project-row">
+                  <div class="project-row-info">
+                    <span class="project-row-name">{name}</span>
+                    <span class="project-row-sep" aria-hidden="true">—</span>
+                    <span class="project-row-tagline">{tagline}</span>
+                  </div>
+                  <span class={`proj-status proj-status--${statusSlug}`}>{status}</span>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
     </div>
   </main>
 </SiteLayout>

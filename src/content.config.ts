@@ -18,6 +18,8 @@ const projects = defineCollection({
     githubUrl: z.string().optional(),
     featured: z.boolean().default(false),
     draft: z.boolean().optional(),
+    /** Card cover image shown on the index page. Optional — falls back to text-only card. */
+    coverImage: z.string().optional(),
     /** Screenshot URLs (CDN or absolute paths). First one is the hero. */
     screenshots: z.array(z.string()).optional(),
     /** Optional captions for each screenshot, matched by index. */

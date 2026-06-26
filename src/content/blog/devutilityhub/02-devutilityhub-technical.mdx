@@ -1,0 +1,658 @@
+---
+title: "DevUtilityHub — Technical Reference"
+description: "Architecture, API contracts, frontend structure, testing strategy, and deployment pipeline."
+pubDate: "2026-06-27"
+tags: ["devutilityhub", "architecture", "api", "dotnet", "react", "azure"]
+category: "Documentation"
+
+---
+
+{/* Adjust import paths to match your content directory depth */}
+import Callout from '../../../components/Callout.astro';
+import Highlight from '../../../components/Highlight.astro';
+import DataTable from '../../../components/DataTable.astro';
+import PostMeta from '../../../components/PostMeta.astro';
+import Pullquote from '../../../components/Pullquote.astro';
+
+{/* ─── Inline presentation components ──────────────────────────────────────── */}
+
+export const Layer = ({ label, note, accent }) => (
+  <div style={{
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '10px 16px',
+    borderLeft: `4px solid ${accent}`,
+    borderRadius: '0 6px 6px 0',
+    marginBottom: '2px',
+    backgroundColor: 'rgba(128,128,128,0.06)',
+  }}>
+    <code style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{label}</code>
+    <span style={{ fontSize: '0.78rem', opacity: 0.65 }}>{note}</span>
+  </div>
+);
+
+export const Arr = () => (
+  <div style={{ textAlign: 'center', color: '#888', lineHeight: '1.2', margin: '2px 0', fontSize: '1.1rem' }}>↓</div>
+);
+
+export const ArchDiagram = () => (
+  <div style={{ maxWidth: '500px', margin: '1.5rem 0', fontFamily: 'monospace' }}>
+    <div style={{ fontSize: '0.75rem', opacity: 0.5, marginBottom: '6px', letterSpacing: '0.08em' }}>
+      HTTP REQUEST
+    </div>
+    <Arr />
+    <Layer label="Controller"  note="route · parse · delegate"                    accent="#6366f1" />
+    <Arr />
+    <Layer label="Service"     note="orchestrate · validate · build response"     accent="#0ea5e9" />
+    <Arr />
+    <Layer label="Core"        note="pure algorithms · no HTTP · no DI"           accent="#10b981" />
+    <Arr />
+    <div style={{ fontSize: '0.75rem', opacity: 0.5, letterSpacing: '0.08em' }}>HTTP RESPONSE</div>
+  </div>
+);
+
+export const MethodBadge = ({ verb }) => {
+  const palette = { GET: '#10b981', POST: '#6366f1', PUT: '#f59e0b', DELETE: '#ef4444' };
+  return (
+    <span style={{
+      backgroundColor: palette[verb] ?? '#888',
+      color: '#fff',
+      borderRadius: '4px',
+      padding: '2px 8px',
+      fontSize: '0.72rem',
+      fontWeight: 'bold',
+      letterSpacing: '0.07em',
+      fontFamily: 'monospace',
+      flexShrink: 0,
+    }}>
+      {verb}
+    </span>
+  );
+};
+
+export const Endpoint = ({ method, path, summary }) => (
+  <div style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '10px 14px',
+    borderRadius: '6px',
+    border: '1px solid rgba(128,128,128,0.2)',
+    backgroundColor: 'rgba(128,128,128,0.04)',
+    margin: '1.5rem 0 0.5rem',
+    fontFamily: 'monospace',
+    flexWrap: 'wrap',
+  }}>
+    <MethodBadge verb={method} />
+    <code style={{ fontSize: '0.88rem' }}>{path}</code>
+    {summary && (
+      <span style={{ marginLeft: 'auto', fontSize: '0.78rem', opacity: 0.6, fontFamily: 'sans-serif' }}>
+        {summary}
+      </span>
+    )}
+  </div>
+);
+
+export const Schema = ({ label, children }) => (
+  <details style={{ marginBottom: '0.75rem' }}>
+    <summary style={{
+      cursor: 'pointer',
+      fontSize: '0.8rem',
+      opacity: 0.7,
+      letterSpacing: '0.05em',
+      fontFamily: 'monospace',
+      userSelect: 'none',
+    }}>
+      {label}
+    </summary>
+    <div style={{ marginTop: '0.5rem' }}>
+      {children}
+    </div>
+  </details>
+);
+
+{/* ─────────────────────────────────────────────────────────────────────────── */}
+
+<PostMeta
+  series="DevUtilityHub"
+  seriesOrder={2}
+  nextPost="Functional Reference"
+  nextPostHref="/blog/devutilityhub/01-functional-reference"
+/>
+
+This is the technical companion to the [Functional Reference](/blog/devutilityhub/01-functional-reference).
+It covers the architecture, every API contract, the frontend structure, testing approach, and
+the CI/CD pipeline that ships both services.
+
+---
+
+## Architecture
+
+<ArchDiagram />
+
+The backend follows a strict three-layer pattern. Each layer has one job and no knowledge
+of the layers above it.
+
+<DataTable
+  headers={["Layer", "Location", "Responsibility"]}
+  rows={[
+    ["Controller", "Controllers/",  "Parse the HTTP request, delegate to a service, return the HTTP response. No logic."],
+    ["Service",    "Services/",     "Orchestrate Core calls, validate input, construct the response DTO. Registered as Scoped via DI."],
+    ["Core",       "Core/",         "Pure algorithm implementations. No HTTP context, no DI, no external state. Freely unit-testable."],
+    ["Models",     "Models/",       "Request and response DTOs only. No domain logic or validation attributes."],
+    ["Middleware", "Middleware/",   "Cross-cutting concerns. ExceptionMiddleware catches all unhandled exceptions and returns a consistent JSON error."],
+  ]}
+/>
+
+<Highlight>The Core layer has zero external dependencies. Every algorithm can be called directly in a unit test with a plain function call.</Highlight>
+
+---
+
+## Technology Stack
+
+### Backend
+
+<DataTable
+  caption="ASP.NET Core Web API — .NET 10"
+  headers={["Concern", "Library / approach"]}
+  rows={[
+    ["Framework",       ".NET 10 · ASP.NET Core Web API"],
+    ["Language",        "C# 13 with nullable reference types and implicit usings enabled"],
+    ["Text diffing",    "DiffPlex 1.9.0"],
+    ["Date parsing",    "Microsoft.Recognizers.Text.DateTime 1.8.13"],
+    ["API docs",        "Swashbuckle.AspNetCore 10.1.7 + Microsoft.AspNetCore.OpenApi 10.0.5"],
+    ["Testing",         "xUnit 2.9.3 · Coverlet 6.0.4"],
+    ["JSON",            "System.Text.Json (in-box, no Newtonsoft)"],
+    ["XML",             ".NET XmlDocument / XDocument"],
+    ["Persistence",     "None — fully stateless"],
+  ]}
+/>
+
+### Frontend
+
+<DataTable
+  caption="React 19 · TypeScript · Vite"
+  headers={["Concern", "Library / version"]}
+  rows={[
+    ["UI framework",    "React 19.2.4"],
+    ["Language",        "TypeScript 6.0.2 · strict mode"],
+    ["Build tool",      "Vite 8.0.4"],
+    ["Routing",         "React Router 7.14.0"],
+    ["HTTP client",     "Axios 1.15.0"],
+    ["CSS",             "Tailwind CSS v4 · custom CSS property design system"],
+    ["Font",            "JetBrains Mono (Google Fonts)"],
+    ["Linting",         "ESLint 9.39.4 · typescript-eslint 8.58.0"],
+  ]}
+/>
+
+---
+
+## API Reference
+
+All endpoints accept and return `application/json`. Every response body includes two
+common fields:
+
+- `isValid: boolean` — whether the operation succeeded
+- `errorMessage: string | null` — parse or validation error detail; `null` on success
+
+A 500 response always returns `{ "error": "An unexpected error occurred." }`.
+The `detail` field is only appended in the `Development` environment.
+
+The max request body size is **1 MB**. Larger payloads receive a 413.
+
+---
+
+### Health check
+
+<Endpoint method="GET" path="/health" summary="Liveness probe" />
+
+No request body. Used by the frontend's `ApiStatusContext` on mount and by Azure App
+Service health probes.
+
+```json
+{ "status": "ok" }
+```
+
+---
+
+### Format / Minify / Validate
+
+<Endpoint method="POST" path="/api/format/process" summary="JSON · XML formatter" />
+
+<Schema label="▸ Request">
+```json
+{
+  "input":        "string   — text to process",
+  "action":       "\"format\" | \"minify\" | \"validate\"",
+  "overrideType": "\"json\" | \"xml\" | \"plain\"   (optional)"
+}
+```
+</Schema>
+
+<Schema label="▸ Response">
+```json
+{
+  "output":       "string   — transformed text (same as input for validate)",
+  "detectedType": "\"json\" | \"xml\" | \"plain\"",
+  "isValid":      "boolean",
+  "errorMessage": "string | null"
+}
+```
+</Schema>
+
+**Detection order:** JSON parse → XML parse → plain text fallback. `overrideType` skips
+this sequence entirely.
+
+<Callout type="note">
+  On a parse failure the response returns the <em>original</em> input in <code>output</code>
+  so the UI can display it unchanged alongside the error message.
+</Callout>
+
+---
+
+### Text Transform
+
+<Endpoint method="POST" path="/api/text/transform" summary="Pipeline of text operations" />
+
+<Schema label="▸ Request">
+```json
+{
+  "input":      "string",
+  "operations": ["trim", "uppercase", "sort"]
+}
+```
+</Schema>
+
+<Schema label="▸ Response">
+```json
+{
+  "output":            "string",
+  "appliedOperations": ["trim", "uppercase", "sort"],
+  "isValid":           "boolean",
+  "errorMessage":      "string | null"
+}
+```
+</Schema>
+
+Operations run sequentially in the order provided. `appliedOperations` in the response
+reflects exactly what was executed — the UI displays this as a pipeline tag list.
+
+<DataTable
+  caption="Supported operation values"
+  headers={["Value", "Scope", "Notes"]}
+  rows={[
+    ["uppercase",  "full text", ""],
+    ["lowercase",  "full text", ""],
+    ["titlecase",  "full text", ""],
+    ["camelcase",  "full text", ""],
+    ["snakecase",  "full text", ""],
+    ["kebabcase",  "full text", ""],
+    ["trim",       "per line",  ""],
+    ["sort",       "per line",  "Case-sensitive"],
+    ["dedup",      "per line",  "Preserves order of first occurrence"],
+    ["reverse",    "per line",  "Reverses line order, not character order"],
+    ["count",      "per line",  "Returns a bare integer string, e.g. \"42\""],
+  ]}
+/>
+
+---
+
+### Diff
+
+<Endpoint method="POST" path="/api/diff/compare" summary="Line-level text diff" />
+
+<Schema label="▸ Request">
+```json
+{
+  "textA": "string   — original",
+  "textB": "string   — modified"
+}
+```
+</Schema>
+
+<Schema label="▸ Response">
+```json
+{
+  "lines": [
+    {
+      "type":       "\"added\" | \"removed\" | \"unchanged\"",
+      "content":    "string",
+      "lineNumber": 1
+    }
+  ],
+  "addedCount":   "integer",
+  "removedCount": "integer",
+  "isValid":      "boolean",
+  "errorMessage": "string | null"
+}
+```
+</Schema>
+
+Powered by **DiffPlex** (`InlineDiffBuilder` in word-diff mode, line granularity).
+`lineNumber` is 1-indexed and represents position in the diff output, not in either
+source text. Empty inputs return an empty `lines` array with counts of `0`.
+
+---
+
+### Timestamp Convert
+
+<Endpoint method="POST" path="/api/time/convert" summary="Unix ↔ human-readable" />
+
+<Schema label="▸ Request">
+```json
+{
+  "direction":      "\"toHuman\" | \"toUnix\"",
+  "unixValue":      "integer | null   — required when direction = \"toHuman\"",
+  "isMilliseconds": "boolean          — true if unixValue is in ms (default: false)",
+  "humanValue":     "string  | null   — required when direction = \"toUnix\"",
+  "timeZoneId":     "string  | null   — IANA timezone ID, e.g. \"America/New_York\""
+}
+```
+</Schema>
+
+<Schema label="▸ Response">
+```json
+{
+  "seconds":      "integer",
+  "ms":           "integer",
+  "utc":          "string   — RFC 2822, e.g. \"Wed, 15 Nov 2023 06:13:20 GMT\"",
+  "iso":          "string   — ISO 8601, e.g. \"2023-11-15T06:13:20.0000000Z\"",
+  "local":        "string | null   — offset-aware, null if no timeZoneId given",
+  "isValid":      "boolean",
+  "errorMessage": "string | null"
+}
+```
+</Schema>
+
+`humanValue` accepts: ISO 8601, `YYYY-MM-DD HH:mm`, `YYYY-MM-DD`, `MM/DD/YYYY`,
+the shorthands `now` / `today` / `yesterday` / `tomorrow`, and natural-language
+expressions via `Microsoft.Recognizers.Text.DateTime` (e.g. `"next Monday"`, `"3 days ago"`).
+
+<Callout type="note">
+  The <strong>Relative</strong> column shown in the UI is not part of the API response.
+  It is computed client-side using <code>Intl.RelativeTimeFormat</code> against
+  the <code>seconds</code> field.
+</Callout>
+
+---
+
+### Encode / Decode
+
+<Endpoint method="POST" path="/api/encode/process" summary="Base64 · URL · HTML  (stub)" />
+
+<Callout type="warning" title="Backend stub">
+  The service implementation is empty. The endpoint accepts requests and returns an empty
+  <code>output</code> string. The encoder classes in <code>Core/Encoders/</code> are
+  implemented but not wired to the service layer yet.
+</Callout>
+
+<Schema label="▸ Request (planned)">
+```json
+{
+  "input":     "string",
+  "operation": "\"encode\" | \"decode\"",
+  "encoding":  "\"base64\" | \"url\" | \"html\""
+}
+```
+</Schema>
+
+---
+
+## Frontend Architecture
+
+### Pages and routes
+
+<DataTable
+  headers={["Route", "Component", "API call"]}
+  rows={[
+    ["/",          "HomePage",        "GET /health (via ApiStatusContext)"],
+    ["/formatter", "FormatterPage",   "POST /api/format/process"],
+    ["/text",      "TextToolsPage",   "POST /api/text/transform"],
+    ["/diff",      "DiffPage",        "POST /api/diff/compare"],
+    ["/time",      "TimePage",        "POST /api/time/convert"],
+    ["/encode",    "EncodingPage",    "POST /api/encode/process"],
+  ]}
+/>
+
+### `useApi<T>` — shared async state hook
+
+Every page goes through this single hook:
+
+```typescript
+const { data, loading, error, call, reset } = useApi<DiffResponse>();
+
+// Trigger a call:
+await call(() => diffApi.compare({ textA, textB }));
+```
+
+`call` sets `loading: true`, awaits the promise, then sets either `data` or `error`.
+It also notifies `ApiStatusContext` of the outcome so the connection indicator in the
+header stays current.
+
+### `ApiStatusContext`
+
+<DataTable
+  caption="Global API connection state machine"
+  headers={["State", "Meaning"]}
+  rows={[
+    ["idle",          "No call has been made yet"],
+    ["checking",      "Health probe in flight (on mount)"],
+    ["ok",            "Last request returned a 2xx response"],
+    ["network-error", "Request received no response (API unreachable)"],
+    ["server-error",  "Request returned a 5xx response"],
+  ]}
+/>
+
+### API client modules
+
+Each tool has a dedicated module in `src/api/`. All share one Axios instance configured
+in `src/api/client.ts`:
+
+```typescript
+export const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  headers: { "Content-Type": "application/json" },
+});
+```
+
+`VITE_API_BASE_URL` is the only environment variable the frontend needs.
+
+---
+
+## Data Flow
+
+A worked example — user formats a JSON string:
+
+```
+User types JSON → clicks PRETTIFY
+        │
+        ▼
+FormatterPage.tsx
+  collects { input, action: "format" }
+  calls formatApi.process(request)
+        │
+        ▼
+src/api/client.ts  [Axios]
+  POST /api/format/process   →   FormatController.cs
+        │
+        ▼
+FormatController.cs
+  [HttpPost("process")]
+  delegates to _formatService.Process(request)
+        │
+        ▼
+FormatService.cs
+  InputTypeDetector.Detect(input)  →  "json"
+  JsonFormatter.Format(input)       →  pretty-printed string
+  returns FormatResponse { output, detectedType: "json", isValid: true }
+        │
+        ▼
+HTTP 200  { output: "...", detectedType: "json", isValid: true }
+        │
+        ▼
+useApi sets data  →  FormatterPage renders output in the right pane
+```
+
+<Callout type="aside">
+  If <code>JsonFormatter.Format</code> throws, <code>FormatService</code> catches
+  the exception and returns a <code>FormatResponse</code> with <code>isValid: false</code>
+  and the parse error message — never a 500. The <code>ExceptionMiddleware</code> only
+  fires for genuinely unexpected errors outside the service boundary.
+</Callout>
+
+---
+
+## Configuration & Environment
+
+### Backend
+
+No secrets in config files. All configuration is through environment variables set on
+the host or in Azure App Service application settings.
+
+<DataTable
+  headers={["Variable", "Where set", "Effect"]}
+  rows={[
+    ["ASPNETCORE_ENVIRONMENT", "Host / Azure config", "\"Development\" enables Swagger UI and includes exception detail in 500 responses"],
+  ]}
+/>
+
+CORS allowed origins are hardcoded in `Program.cs`:
+- `https://devtoolkit.nikkapaola.com` (production frontend)
+- `http://localhost:5173` (local Vite dev server)
+
+### Frontend
+
+<DataTable
+  headers={["Variable", "Required", "Where set"]}
+  rows={[
+    ["VITE_API_BASE_URL", "Yes", "Local: .env file · Production: Cloudflare Pages environment variable injected at build time"],
+  ]}
+/>
+
+---
+
+## Testing
+
+<Pullquote>Unit tests target the Core layer directly. No HTTP context, no DI container, no mocks — just function calls.</Pullquote>
+
+The test project at `backend/DevUtilityHub.Tests/` mirrors the Core module structure.
+Services are also tested where orchestration logic warrants it.
+
+```bash
+cd backend
+dotnet test
+```
+
+<DataTable
+  caption="Test coverage by file"
+  headers={["File", "Target", "Scope"]}
+  rows={[
+    ["FormatServiceTests.cs",      "FormatService",       "30+ cases — JSON/XML format, minify, validate, malformed input, detection override"],
+    ["TextTransformServiceTests.cs","TextTransformService","All 11 operations individually and in pipeline combinations"],
+    ["DiffServiceTests.cs",        "DiffService",         "Empty inputs, identical texts, single-change diffs, multi-line diffs"],
+    ["TimestampServiceTests.cs",   "TimestampService",    "Unix → human and human → Unix in both directions, timezone offsets"],
+    ["TimestampConverterTests.cs", "TimestampConverter",  "Shorthands (now/today), natural language strings, IANA timezone resolution"],
+  ]}
+/>
+
+<Callout type="note">
+  No frontend tests are configured. There is no Vitest or Jest setup in
+  <code>package.json</code>.
+</Callout>
+
+---
+
+## CI/CD & Deployment
+
+Two independent GitHub Actions workflows, each scoped to its own directory path.
+Neither workflow runs if only the other service changed.
+
+### Frontend → Cloudflare Pages
+
+**Workflow:** `.github/workflows/deploy-frontend.yml`  
+**Trigger:** Push to `main` with changes in `frontend/**`, or manual dispatch.
+
+```
+1. Checkout
+2. Node 20 setup (npm cache)
+3. npm ci
+4. npm run build   ← VITE_API_BASE_URL injected from GitHub secret
+5. cloudflare/pages-action@v1  →  deploys dist/
+```
+
+<DataTable
+  caption="Required GitHub secrets"
+  headers={["Secret", "Purpose"]}
+  rows={[
+    ["VITE_API_BASE_URL",      "Production backend URL baked into the JS bundle at build time"],
+    ["CLOUDFLARE_API_TOKEN",   "Cloudflare API access"],
+    ["CLOUDFLARE_ACCOUNT_ID",  "Cloudflare account identifier"],
+    ["CF_PAGES_PROJECT_NAME",  "Cloudflare Pages project name"],
+  ]}
+/>
+
+### Backend → Azure App Service
+
+**Workflow:** `.github/workflows/deploy-backend.yml`  
+**Trigger:** Push to `main` with changes in `backend/**`, or manual dispatch.
+
+Two jobs run sequentially:
+
+**Job 1: `build-and-test`**
+```
+dotnet restore
+dotnet build --configuration Release
+dotnet test
+```
+
+**Job 2: `build-and-deploy`** (only runs if tests pass)
+```
+dotnet publish --configuration Release --runtime linux-x64 --self-contained
+azure/login@v2
+azure/webapps-deploy@v3  →  App Service: dev-utility-hub-api
+```
+
+The publish is `--self-contained` so no .NET runtime is required on the host. The
+App Service plan is Azure Free F1 — this is why Docker is **not** used in production;
+F1 does not support container deployment.
+
+<DataTable
+  caption="Required GitHub secrets"
+  headers={["Secret", "Purpose"]}
+  rows={[
+    ["AZURE_CREDENTIALS", "Service principal JSON used by azure/login@v2"],
+  ]}
+/>
+
+---
+
+## Docker
+
+Docker is available for local development only. The Dockerfile lives at
+`backend/DevUtilityHub.Api/Dockerfile`.
+
+<DataTable
+  caption="Dockerfile build stages"
+  headers={["Stage", "Base image", "Purpose"]}
+  rows={[
+    ["base",    "mcr.microsoft.com/dotnet/aspnet:10.0",  "Runtime-only base; exposes ports 8080 and 8081"],
+    ["build",   "mcr.microsoft.com/dotnet/sdk:10.0",     "Restore NuGet packages and build in Release config"],
+    ["publish", "build",                                  "dotnet publish with UseAppHost=false"],
+    ["final",   "base",                                   "Production image — copies published output, sets entrypoint"],
+    ["debug",   "base",                                   "Installs curl + vsdbg; builds in Debug; exposes port 4024 for VS Code remote debugger"],
+  ]}
+/>
+
+```bash
+# Build and run production image locally
+docker build -t devutilityhub-api ./backend/DevUtilityHub.Api
+docker run -p 5294:8080 -e ASPNETCORE_ENVIRONMENT=Development devutilityhub-api
+```
+
+A `docker-compose.debug.yml` at the repo root maps `localhost:5294 → 8080` (API) and
+`localhost:4024 → 4024` (VS Code remote debugger) for integrated debugging:
+
+```bash
+docker compose -f docker-compose.debug.yml up
+```
